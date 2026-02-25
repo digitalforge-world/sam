@@ -17,7 +17,6 @@ class CarteController extends Controller
         return view('carte.index', [
             'zones'       => $zones,
             'producteurs' => $producteurs,
-            'mapboxToken' => config('services.mapbox.token'),
         ]);
     }
 

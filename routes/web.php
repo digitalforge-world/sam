@@ -61,7 +61,7 @@ Route::middleware(['auth'])->group(function () {
     // ── Contrôles ────────────────────────────────────────────────
     Route::resource('controles', ControleController::class)->only(['index', 'create', 'store']);
 
-    // ── Carte Mapbox ─────────────────────────────────────────────
+    // ── Carte (Leaflet / OSM) ──────────────────────────────────────
     Route::prefix('carte')->name('carte.')->group(function () {
         Route::get('/',              [CarteController::class, 'index'])->name('index');
         Route::get('/geojson',       [CarteController::class, 'geojson'])->name('geojson');

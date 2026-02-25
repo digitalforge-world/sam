@@ -15,7 +15,10 @@ class DefaultUsersSeeder extends Seeder
         $zoneNames = ['Zone Maritime', 'Zone des Plateaux', 'Zone Centrale', 'Zone de la Kara', 'Zone des Savanes'];
 
         foreach ($zoneNames as $nom) {
-            $zones[] = Zone::firstOrCreate(['nom' => $nom]);
+            $zones[] = Zone::firstOrCreate(
+                ['nom' => $nom],
+                ['mot_de_passe' => '123@4']
+            );
         }
 
         // ══════════════════════════════════════════════

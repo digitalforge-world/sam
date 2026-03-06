@@ -25,7 +25,7 @@
                     <td>@if($p->bio)<span class="badge-status badge-bio">Oui</span>@else<span class="badge-status badge-muted">Non</span>@endif</td>
                     <td>
                         @if($p->approbation_production === 'BIO')<span class="badge-status badge-bio">BIO</span>
-                        @elseif($p->approbation_production === 'OK')<span class="badge-status badge-ok">OK</span>
+                        @elseif($p->approbation_production === 'CONVERSION')<span class="badge-status badge-ok">En conversion</span>
                         @elseif($p->approbation_production === 'DECLASSIFIED')<span class="badge-status badge-error">Déclassée</span>
                         @else —
                         @endif

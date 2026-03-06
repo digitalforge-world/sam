@@ -26,7 +26,7 @@
             <div class="detail-row"><span class="detail-label">Superficie BIO</span><span class="detail-value">{{ $parcelle->superficie_bio ? number_format($parcelle->superficie_bio, 3) . ' ha' : '—' }}</span></div>
             <div class="detail-row"><span class="detail-label">Approbation</span><span class="detail-value">
                 @if($parcelle->approbation_production === 'BIO')<span class="badge-status badge-bio">BIO</span>
-                @elseif($parcelle->approbation_production === 'OK')<span class="badge-status badge-ok">OK</span>
+                @elseif($parcelle->approbation_production === 'CONVERSION')<span class="badge-status badge-ok">En conversion</span>
                 @elseif($parcelle->approbation_production === 'DECLASSIFIED')<span class="badge-status badge-error">Déclassée</span>
                 @else — @endif
             </span></div>

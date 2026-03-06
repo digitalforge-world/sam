@@ -37,7 +37,7 @@ class Parcelle extends Model
     {
         return match ($this->approbation_production) {
             'BIO'          => '#22c55e',
-            'OK'           => '#eab308',
+            'CONVERSION'   => '#eab308',
             'DECLASSIFIED' => '#ef4444',
             default        => '#94a3b8',
         };

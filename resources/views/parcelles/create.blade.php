@@ -27,22 +27,22 @@
         <div class="section-header"><span class="section-number">2</span><h4 class="section-title">Superficies & Production</h4></div>
         <div class="form-row">
             <div class="form-group"><label class="form-label">Superficie (ha)</label><input type="number" step="0.0001" name="superficie" class="form-input" value="{{ old('superficie', $parcelle->superficie ?? '') }}"></div>
-            <div class="form-group"><label class="form-label">Superficie bio (ha)</label><input type="number" step="0.001" name="superficie_bio" class="form-input" value="{{ old('superficie_bio', $parcelle->superficie_bio ?? '') }}"></div>
+            <div class="form-group"><label class="form-label">Superficie bio (ha)</label><input type="number" step="0.001" id="superficie_bio" name="superficie_bio" class="form-input" value="{{ old('superficie_bio', $parcelle->superficie_bio ?? '') }}"></div>
         </div>
         <div class="form-row">
-            <div class="form-group"><label class="form-label">Rendement bio</label><input type="number" step="0.001" name="rendement_bio" class="form-input" value="{{ old('rendement_bio', $parcelle->rendement_bio ?? '') }}"></div>
-            <div class="form-group"><label class="form-label">Volume production</label><input type="number" name="volume_production" class="form-input" value="{{ old('volume_production', $parcelle->volume_production ?? '') }}"></div>
+            <div class="form-group"><label class="form-label">Rendement bio</label><input type="number" step="0.001" id="rendement_bio" name="rendement_bio" class="form-input" value="{{ old('rendement_bio', $parcelle->rendement_bio ?? '') }}"></div>
+            <div class="form-group"><label class="form-label">Estimation de récolte (Bio)</label><input type="number" id="volume_production" name="volume_production" class="form-input" value="{{ old('volume_production', $parcelle->volume_production ?? '') }}"></div>
         </div>
 
         <hr class="section-divider">
         <div class="section-header"><span class="section-number">3</span><h4 class="section-title">Caractéristiques</h4></div>
         <div class="form-row">
             <div class="form-group"><label class="form-label">Niveau de pente</label><select name="niveau_pente" class="form-select"><option value="">—</option>@foreach(['WITHOUT'=>'Sans','SMALL'=>'Faible','MEDIUM'=>'Moyenne','HIGH'=>'Forte'] as $k=>$l)<option value="{{ $k }}" {{ old('niveau_pente', $parcelle->niveau_pente ?? '') === $k ? 'selected' : '' }}>{{ $l }}</option>@endforeach</select></div>
-            <div class="form-group"><label class="form-label">Type de culture</label><select name="type_culture" class="form-select"><option value="">—</option>@foreach(['SINGLE'=>'Simple','ASSOCIATIVE'=>'Associative','SPACER'=>'Intercalaire','PURE'=>'Pure','STOLEN'=>'Dérobée'] as $k=>$l)<option value="{{ $k }}" {{ old('type_culture', $parcelle->type_culture ?? '') === $k ? 'selected' : '' }}>{{ $l }}</option>@endforeach</select></div>
+            <div class="form-group"><label class="form-label">Type de culture</label><select name="type_culture" class="form-select"><option value="">—</option>@foreach(['ASSOCIATIVE'=>'Associative','SPACER'=>'Intercalaire','PURE'=>'Pure','STOLEN'=>'Dérobée'] as $k=>$l)<option value="{{ $k }}" {{ old('type_culture', $parcelle->type_culture ?? '') === $k ? 'selected' : '' }}>{{ $l }}</option>@endforeach</select></div>
         </div>
         <div class="form-row">
-            <div class="form-group"><label class="form-label">Type employés</label><select name="type_employes" class="form-select"><option value="">—</option>@foreach(['SEASONAL'=>'Saisonniers','PERMANENT'=>'Permanents'] as $k=>$l)<option value="{{ $k }}" {{ old('type_employes', $parcelle->type_employes ?? '') === $k ? 'selected' : '' }}>{{ $l }}</option>@endforeach</select></div>
-            <div class="form-group"><label class="form-label">Approbation</label><select name="approbation_production" class="form-select"><option value="">—</option>@foreach(['BIO'=>'BIO','OK'=>'OK','DECLASSIFIED'=>'Déclassée'] as $k=>$l)<option value="{{ $k }}" {{ old('approbation_production', $parcelle->approbation_production ?? '') === $k ? 'selected' : '' }}>{{ $l }}</option>@endforeach</select></div>
+            <div class="form-group"><label class="form-label">Type employés</label><select name="type_employes" class="form-select"><option value="">—</option>@foreach(['SEASONAL'=>'Saisonniers','PERMANENT'=>'Permanents','FAMILIAL'=>'Familiale','LABOR'=>'Main d\'œuvre'] as $k=>$l)<option value="{{ $k }}" {{ old('type_employes', $parcelle->type_employes ?? '') === $k ? 'selected' : '' }}>{{ $l }}</option>@endforeach</select></div>
+            <div class="form-group"><label class="form-label">Approbation</label><select name="approbation_production" class="form-select"><option value="">—</option>@foreach(['BIO'=>'BIO','CONVERSION'=>'En conversion','DECLASSIFIED'=>'Déclassée'] as $k=>$l)<option value="{{ $k }}" {{ old('approbation_production', $parcelle->approbation_production ?? '') === $k ? 'selected' : '' }}>{{ $l }}</option>@endforeach</select></div>
         </div>
 
         <hr class="section-divider">
@@ -60,4 +60,23 @@
         </div>
     </form>
 </div></div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const supBioInput = document.getElementById('superficie_bio');
+        const rendBioInput = document.getElementById('rendement_bio');
+        const volumeInput = document.getElementById('volume_production');
+
+        function calculateVolume() {
+            const supBio = parseFloat(supBioInput.value) || 0;
+            const rendBio = parseFloat(rendBioInput.value) || 0;
+            volumeInput.value = Math.round(supBio * rendBio);
+        }
+
+        supBioInput.addEventListener('input', calculateVolume);
+        rendBioInput.addEventListener('input', calculateVolume);
+    });
+</script>
+@endpush
 @endsection

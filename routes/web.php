@@ -23,6 +23,15 @@ use App\Http\Controllers\Areas\{
 };
 use Illuminate\Support\Facades\Route;
 
+Route::get('/scan', function() {
+    return [
+        'base' => base_path(),
+        'public' => public_path(),
+        'assets_img' => glob(public_path('assets/img/*')),
+        'public_root' => glob(public_path('*')),
+    ];
+});
+
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/', DashboardController::class)->name('dashboard');

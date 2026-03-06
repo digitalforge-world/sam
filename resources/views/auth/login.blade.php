@@ -2,7 +2,7 @@
     @section('title', 'Connexion')
 
     <div class="auth-card-header">
-        <div class="greeting">Bienvenue</div>
+        <div class="greeting">Bienvenue v2</div>
         <h1>Connexion</h1>
         <p>Accédez à votre espace de gestion de certification biologique</p>
     </div>

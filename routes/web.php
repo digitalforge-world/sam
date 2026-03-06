@@ -23,6 +23,16 @@ use App\Http\Controllers\Areas\{
 };
 use Illuminate\Support\Facades\Route;
 
+Route::get('/debug-logo', function() {
+    $path = public_path('assets/img/logo-ofca.png');
+    return [
+        'public_path' => public_path(),
+        'file_exists' => file_exists($path),
+        'path' => $path,
+        'dir_contents' => glob(public_path('*')),
+    ];
+});
+
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/', DashboardController::class)->name('dashboard');

@@ -24,10 +24,22 @@ use App\Http\Controllers\Areas\{
 use Illuminate\Support\Facades\Route;
 
 Route::get('/scan', function() {
+    $path = public_path('assets/img/logo-ofca.png');
+    $assets = public_path('assets');
+    $img = public_path('assets/img');
+    
     return [
-        'base' => base_path(),
-        'public' => public_path(),
-        'assets_img' => glob(public_path('assets/img/*')),
+        'file' => [
+            'exists' => file_exists($path),
+            'readable' => is_readable($path),
+            'perms' => file_exists($path) ? decoct(fileperms($path) & 0777) : 'N/A',
+            'mime' => file_exists($path) ? mime_content_type($path) : 'N/A',
+            'size' => file_exists($path) ? filesize($path) : 0,
+        ],
+        'dirs' => [
+            'assets' => file_exists($assets) ? decoct(fileperms($assets) & 0777) : 'N/A',
+            'img' => file_exists($img) ? decoct(fileperms($img) & 0777) : 'N/A',
+        ],
         'public_root' => glob(public_path('*')),
     ];
 });

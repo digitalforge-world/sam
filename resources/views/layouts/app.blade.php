@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Tableau de bord') — SAM Certif Bio</title>
+    <title>@yield('title', 'Tableau de bord') — {{ config('app.name', 'OFCA') }}</title>
 
     {{-- Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,10 +25,10 @@
         {{-- ── Sidebar ────────────────────────────────── --}}
         <aside class="app-sidebar" id="sidebar">
             <a href="{{ route('dashboard') }}" class="sidebar-logo">
-                <div class="logo-icon">🌿</div>
+                <img src="{{ asset('assets/img/logo-ofca.png') }}" alt="OFCA Logo" style="height: 48px; width: auto; margin-right: 10px;">
                 <div class="logo-text">
-                    <div class="title">SAM</div>
-                    <div class="subtitle">CERTIFICATION BIO</div>
+                    <div class="title">OFCA</div>
+                    <div class="subtitle">SCOOPS-SNC</div>
                 </div>
             </a>
 

@@ -100,18 +100,23 @@
         }
 
         .brand-logo {
-            width: 72px;
-            height: 72px;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
+            width: 140px;
+            height: 140px;
+            background: #fff;
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
             margin: 0 auto 28px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+            padding: 10px;
+        }
+        
+        .brand-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
         .brand-title {
@@ -473,7 +478,9 @@
             <div class="brand-deco brand-deco-3"></div>
 
             <div class="brand-content">
-                <div class="brand-logo">🌿</div>
+                <div class="brand-logo">
+                    <img src="{{ asset('assets/img/logo-ofca.png') }}" alt="OFCA Logo">
+                </div>
                 <h1 class="brand-title">SCOOPS<br>OFCA</h1>
                 <p class="brand-subtitle">
                     Système intégré de gestion de la certification biologique agricole.

@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Connexion') — {{ config('app.name', 'SAM Certification Bio') }}</title>
-    <meta name="description" content="Système de gestion de certification biologique agricole — SAM">
+    <title>@yield('title', 'Connexion') — {{ config('app.name', 'OFCA Certification Bio') }}</title>
+    <meta name="description" content="Système de gestion de certification biologique agricole — OFCA">
 
     {{-- Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -474,7 +474,7 @@
 
             <div class="brand-content">
                 <div class="brand-logo">🌿</div>
-                <h1 class="brand-title">SAM<br>Certification Bio</h1>
+                <h1 class="brand-title">SCOOPS<br>OFCA</h1>
                 <p class="brand-subtitle">
                     Système intégré de gestion de la certification biologique agricole.
                     Traçabilité, contrôle et cartographie des parcelles.
@@ -491,7 +491,7 @@
             <div class="auth-card">
                 {{ $slot }}
             </div>
-            <div class="auth-copyright">© {{ date('Y') }} SAM — Tous droits réservés</div>
+            <div class="auth-copyright">© {{ date('Y') }} SCOOPS OFCA — Tous droits réservés</div>
         </div>
     </div>
 

@@ -27,13 +27,18 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: ./ofca/
+          # Ensure we include public assets and exclude unnecessary local/dev files
           exclude: |
             - '**/.git/*'
             - '**/.git/**'
-            - 'node_modules/*'
+            - 'node_modules/**'
+            - 'storage/logs/**'
+            - 'storage/framework/sessions/**'
+            - 'storage/framework/views/**'
+            - 'storage/framework/cache/**'
             - '.env'
             - '.env.example'
             - 'phpunit.xml'
             - 'README.md'
             - 'tests/**'
-            - 'vendor.zip'
+            - '.github/**'

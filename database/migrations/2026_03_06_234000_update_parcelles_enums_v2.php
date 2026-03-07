@@ -16,7 +16,7 @@ return new class extends Migration
         // 2. Update schema
         Schema::table('parcelles', function (Blueprint $table) {
             $table->enum('approbation_production', ['BIO', 'CONVERSION', 'DECLASSIFIED'])->nullable()->change();
-            $table->enum('type_employes', ['SEASONAL', 'PERMANENT', 'FAMILIAL', 'LABOR'])->nullable()->change();
+            $table->enum('type_employes', ['SEASONAL', 'PERMANENT', 'FAMILIAL_LABOR'])->nullable()->change();
             $table->enum('type_culture', ['ASSOCIATIVE', 'SPACER', 'PURE', 'STOLEN'])->nullable()->change();
         });
     }

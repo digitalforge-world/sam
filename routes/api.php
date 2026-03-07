@@ -14,6 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Endpoints for Locations (Subdivisions)
     Route::get('/regions', [LocationController::class, 'regions']);
     Route::get('/prefectures', [LocationController::class, 'prefectures']);
+    Route::get('/communes', [LocationController::class, 'communes']);
     Route::get('/cantons', [LocationController::class, 'cantons']);
     Route::get('/villages', [LocationController::class, 'villages']);
     Route::get('/zones', [LocationController::class, 'zones']);

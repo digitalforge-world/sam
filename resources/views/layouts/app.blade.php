@@ -59,6 +59,12 @@
                     </a>
                 </li>
                 <li class="menu-item">
+                    <a href="{{ route('areas.communes.index') }}" class="menu-link {{ request()->routeIs('areas.communes.*') ? 'active' : '' }}">
+                        <span class="menu-icon"><i data-lucide="map" style="width:18px;height:18px"></i></span>
+                        Communes
+                    </a>
+                </li>
+                <li class="menu-item">
                     <a href="{{ route('areas.cantons.index') }}" class="menu-link {{ request()->routeIs('areas.cantons.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="map-pin" style="width:18px;height:18px"></i></span>
                         Cantons

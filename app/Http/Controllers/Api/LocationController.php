@@ -26,6 +26,18 @@ class LocationController extends Controller
         return response()->json($query->get());
     }
 
+    public function communes(Request $request)
+    {
+        $query = \App\Models\Commune::query();
+        if ($request->has('region_id')) {
+            $query->where('region_id', $request->region_id);
+        }
+        if ($request->has('prefecture_id')) {
+            $query->where('prefecture_id', $request->prefecture_id);
+        }
+        return response()->json($query->get());
+    }
+
     public function cantons(Request $request)
     {
         $query = Canton::query();

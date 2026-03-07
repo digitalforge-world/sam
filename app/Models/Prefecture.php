@@ -18,6 +18,7 @@ class Prefecture extends Model
     }
 
     public function region(): BelongsTo  { return $this->belongsTo(Region::class); }
+    public function communes(): HasMany  { return $this->hasMany(Commune::class); }
     public function cantons(): HasMany   { return $this->hasMany(Canton::class); }
     public function villages(): HasMany  { return $this->hasMany(Village::class); }
 }

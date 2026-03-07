@@ -17,6 +17,7 @@ use App\Http\Controllers\{
 use App\Http\Controllers\Areas\{
     RegionController,
     PrefectureController,
+    CommuneController,
     CantonController,
     VillageController,
     ZoneController,
@@ -49,6 +50,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('areas')->name('areas.')->group(function () {
         Route::resource('regions', RegionController::class);
         Route::resource('prefectures', PrefectureController::class);
+        Route::resource('communes', CommuneController::class);
         Route::resource('cantons', CantonController::class);
         Route::resource('villages', VillageController::class);
         Route::resource('zones', ZoneController::class);

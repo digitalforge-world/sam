@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\{
+use App\Http\Controllers\Web\{
     DashboardController,
     CarteController,
     OrganisationPaysanneController,
@@ -14,7 +14,7 @@ use App\Http\Controllers\{
     ParametreController,
     ProfileController,
 };
-use App\Http\Controllers\Areas\{
+use App\Http\Controllers\Web\Areas\{
     RegionController,
     PrefectureController,
     CommuneController,

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Areas;
+namespace App\Http\Controllers\Web\Areas;
 
 use App\Http\Controllers\Controller;
 use App\Models\Region;

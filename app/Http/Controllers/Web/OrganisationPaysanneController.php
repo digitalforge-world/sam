@@ -20,6 +20,13 @@ class OrganisationPaysanneController extends Controller
         return view('organisations.index', compact('organisations', 'zones'));
     }
 
+    public function show(OrganisationPaysanne $organisation)
+    {
+        $organisation->load('zone', 'village', 'controleur');
+        $producteurs = $organisation->producteurs()->with('village')->latest()->paginate(20);
+        return view('organisations.show', compact('organisation', 'producteurs'));
+    }
+
     public function create()
     {
         $zones = Zone::orderBy('nom')->get();

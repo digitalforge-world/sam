@@ -11,11 +11,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Producteur extends Model
 {
     protected $fillable = [
-        'code', 'nom', 'prenom', 'zone_id', 'village_id',
+        'code', 'nom', 'prenom',
+        'sexe', 'telephone', 'type_carte', 'statut', 'annee_adhesion',
+        'zone_id', 'village_id',
         'organisation_paysanne_id', 'controleur_id', 'est_actif'
     ];
 
-    protected $casts = ['est_actif' => 'boolean'];
+    protected $casts = [
+        'est_actif'       => 'boolean',
+        'annee_adhesion'  => 'integer',
+    ];
 
     protected static function booted(): void
     {

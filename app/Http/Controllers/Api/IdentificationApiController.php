@@ -26,11 +26,60 @@ class IdentificationApiController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'numero' => 'required|string|max:50',
+            //'numero' => 'required|string|max:50', // We can autogenerate it or make it nullable for now
+            'numero' => 'nullable|string|max:50',
             'producteur_id' => 'required|exists:producteurs,id',
             'superficie' => 'nullable|numeric|min:0',
-            'campagne' => 'required|string|max:20',
+            'campagne' => 'nullable|string|max:20', // the user didn't mention it, make it nullable
+            
+            'culture_id' => 'nullable|exists:cultures,id',
+            'village' => 'nullable|string',
+            'organisation_paysanne' => 'nullable|string',
+            'statut_producteur' => 'nullable|string',
+            'nom_parcelle' => 'nullable|string',
+            
+            'participation_formations' => 'boolean',
+            'production_parallele' => 'boolean',
+            'diversite_biologique' => 'boolean',
+            'gestion_dechets' => 'boolean',
+            'emballage_non_conforme' => 'boolean',
+            'rotation_cultures' => 'boolean',
+            'isolement_parcelles' => 'boolean',
+            'preparation_sol' => 'boolean',
+            'fertilisation' => 'boolean',
+            'semences' => 'boolean',
+            'gestion_adventices' => 'boolean',
+            'gestion_ravageurs' => 'boolean',
+            'recolte' => 'boolean',
+            'stockage' => 'boolean',
+            
+            'commentaire' => 'nullable|string',
+
+            'date_preparation_sol' => 'nullable|date',
+            'date_semis' => 'nullable|date',
+            'date_sarclage_1' => 'nullable|date',
+            'date_sarclage_2' => 'nullable|date',
+            'date_fertilisation' => 'nullable|date',
+            'date_recolte' => 'nullable|date',
+
+            'arbres' => 'nullable|array',
+            'niveau_pente' => 'nullable|string',
+            'type_culture' => 'nullable|string',
+            'a_cours_eau' => 'boolean',
+            'maisons_environnantes' => 'boolean',
+            'cultures_proximite' => 'nullable|string',
+            'rencontre_avec' => 'nullable|string',
+            'photo_parcelle' => 'nullable|string',
+            'signature_producteur' => 'nullable|string',
+            'coordonnees_polygon' => 'nullable|array',
         ]);
+        
+        if (empty($validated['numero'])) {
+            $validated['numero'] = 'ID-' . strtoupper(uniqid());
+        }
+        if (empty($validated['campagne'])) {
+            $validated['campagne'] = date('Y') . '-' . (date('Y') + 1);
+        }
 
         $validated['controleur_id'] = Auth::id();
 

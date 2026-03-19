@@ -11,6 +11,15 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "updates": {
+      "url": "https://u.expo.dev/f6181128-530e-40d5-a0c5-8b87b8d8a9b0",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.ofca.app"
@@ -44,6 +53,7 @@
       "expo-secure-store",
       "expo-font",
       "expo-file-system",
+      "expo-updates",
       [
         "expo-location",
         {

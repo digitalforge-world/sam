@@ -187,10 +187,10 @@ export default function LoginScreen({ route }) {
                         {loading ? (
                             <ActivityIndicator color="#fff" size="small" />
                         ) : (
-                            <>
-                                <MaterialCommunityIcons name="login" size={18} color="#fff" style={{ marginRight: 8 }} />
-                                <Text style={styles.loginButtonText}>SE CONNECTER</Text>
-                            </>
+                            <View style={styles.loginButtonInner}>
+                                <MaterialCommunityIcons name="login" size={20} color="#fff" style={styles.loginButtonIcon} />
+                                <Text style={styles.loginButtonText} numberOfLines={1}>Se connecter</Text>
+                            </View>
                         )}
                     </TouchableOpacity>
                 </Animated.View>
@@ -319,23 +319,32 @@ const styles = StyleSheet.create({
         padding: SPACING.xs,
     },
     loginButton: {
-        flexDirection: 'row',
         backgroundColor: COLORS.primary,
         borderRadius: RADIUS.lg,
-        height: 52,
+        height: 54,
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: SPACING.sm,
         ...SHADOWS.colored(COLORS.primary),
+        paddingHorizontal: SPACING.md,
     },
     loginButtonLoading: {
         opacity: 0.8,
     },
+    loginButtonInner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+    },
+    loginButtonIcon: {
+        marginRight: 10,
+    },
     loginButtonText: {
         color: COLORS.white,
-        fontWeight: '800',
-        fontSize: 15,
-        letterSpacing: 0.5,
+        fontWeight: 'bold',
+        fontSize: 16,
+        letterSpacing: 0.2,
     },
     footer: {
         textAlign: 'center',

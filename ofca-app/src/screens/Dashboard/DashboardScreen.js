@@ -11,11 +11,13 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SHADOWS, SPACING, RADIUS, MENU_ITEMS } from '../../theme';
 
 const { width } = Dimensions.get('window');
 
 export default function DashboardScreen({ navigation, route }) {
+    const insets = useSafeAreaInsets();
     const { setUserToken } = route.params;
     const [userInfo, setUserInfo] = useState(null);
     const fadeAnims = useRef(MENU_ITEMS.map(() => new Animated.Value(0))).current;
@@ -69,7 +71,7 @@ export default function DashboardScreen({ navigation, route }) {
     return (
         <View style={styles.root}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: Math.max(insets.top, SPACING.lg) }]}>
                 <View style={styles.headerLeft}>
                     <Text style={styles.greeting}>{getGreeting()},</Text>
                     <Text style={styles.userName}>{firstName} 👋</Text>
@@ -78,7 +80,7 @@ export default function DashboardScreen({ navigation, route }) {
                     style={styles.profileBtn}
                     onPress={() => navigation.navigate('Profile', { setUserToken })}
                 >
-                    <MaterialCommunityIcons name="account-circle" size={38} color={COLORS.primary} />
+                    <MaterialCommunityIcons name="account-circle-outline" size={38} color={COLORS.primary} />
                 </TouchableOpacity>
             </View>
 
@@ -147,10 +149,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: SPACING.lg,
-        paddingTop: SPACING.lg,
         paddingBottom: SPACING.md,
         backgroundColor: COLORS.white,
-        ...SHADOWS.small,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f3f4f6',
     },
     headerLeft: {},
     greeting: {

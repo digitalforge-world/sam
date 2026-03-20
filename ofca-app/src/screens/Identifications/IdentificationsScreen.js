@@ -264,6 +264,7 @@ export default function IdentificationsScreen({ navigation }) {
     const webViewRef = useRef(null);
 
     const [offlineReady, setOfflineReady] = useState(false);
+    const [downloadingTiles, setDownloadingTiles] = useState(false);
     const [downloadProgress, setDownloadProgress] = useState(0);
     
     // Etats pour l'Historique

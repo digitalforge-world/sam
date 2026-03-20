@@ -515,6 +515,17 @@ export default function IdentificationsScreen({ navigation }) {
                     {renderPicker('Organisation paysanne', selectedOrganisation, setSelectedOrganisation, organisations, 'nom', 'id')}
                     {renderPicker('Producteur', selectedProducteur, setSelectedProducteur,
                         producteurs.map(p => ({ label: `${p.nom} ${p.prenom}`, value: p.id })), 'label', 'value')}
+                    
+                    <View style={styles.inputWrapper}>
+                        <TextInput
+                            style={styles.textInput}
+                            value={nomParcelle}
+                            onChangeText={setNomParcelle}
+                            placeholder="Nom de la parcelle (ex: Champ Sud)"
+                            placeholderTextColor={COLORS.textDisabled}
+                        />
+                    </View>
+
                     {renderPicker('Culture à certifier', selectedCulture, setSelectedCulture, cultures, 'nom', 'id')}
                     {renderPicker('Statut', statutProducteur, setStatutProducteur,
                         [{ label: 'Nouveau', value: 'Nouveau' }, { label: 'Ancien', value: 'Ancien' }], 'label', 'value')}
@@ -926,6 +937,8 @@ const styles = StyleSheet.create({
     scrollArea: { flex: 1 },
 
     card: { backgroundColor: '#fff', marginBottom: 8, paddingVertical: 4 },
+    inputWrapper: { paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
+    textInput: { height: 40, fontSize: 16, color: '#111', fontWeight: '500' },
     togglesCard: { backgroundColor: '#fff', marginBottom: 8 },
     calendarCard: { backgroundColor: '#fff', marginBottom: 8, paddingHorizontal: 16, paddingVertical: 8 },
     commentCard: { backgroundColor: '#fff', marginBottom: 8, paddingHorizontal: 16, paddingVertical: 8 },

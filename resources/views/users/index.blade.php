@@ -25,8 +25,12 @@
                     <td>
                         <form method="POST" action="{{ route('users.toggle', $u) }}">
                             @csrf
-                            <button type="submit" class="badge-status {{ $u->est_actif ? 'badge-bio' : 'badge-error' }}" style="border:none; cursor:pointer" title="Cliquez pour changer">
-                                {{ $u->est_actif ? 'Actif' : 'Inactif' }}
+                            <button type="submit" class="badge-status {{ $u->est_actif ? 'badge-bio' : 'badge-error' }}" style="border:none; cursor:pointer; width:90px; padding:6px 0; font-size:11px" title="Cliquez pour changer le statut">
+                                @if($u->est_actif)
+                                    <i data-lucide="check" style="width:12px;height:12px;margin-right:4px"></i> Actif
+                                @else
+                                    <i data-lucide="x" style="width:12px;height:12px;margin-right:4px"></i> Suspendu
+                                @endif
                             </button>
                         </form>
                     </td>

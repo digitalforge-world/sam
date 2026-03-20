@@ -10,7 +10,7 @@
     @if($users->count())
     <div style="overflow-x:auto">
         <table class="data-table">
-            <thead><tr><th>#</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Zone</th><th>Date</th><th class="actions">Actions</th></tr></thead>
+            <thead><tr><th>#</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Zone</th><th>Date</th><th class="actions">Actions</th></tr></thead>
             <tbody>
                 @foreach($users as $u)
                 <tr>
@@ -19,8 +19,16 @@
                     <td>{{ $u->email }}</td>
                     <td>
                         @foreach($u->roles as $r)
-                        <span class="badge-status badge-bio" style="text-transform:capitalize">{{ $r->name }}</span>
+                        <span class="badge-status {{ $r->name === 'admin' ? 'badge-bio' : 'badge-ok' }}" style="text-transform:capitalize">{{ $r->name }}</span>
                         @endforeach
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ route('users.toggle', $u) }}">
+                            @csrf
+                            <button type="submit" class="badge-status {{ $u->est_actif ? 'badge-bio' : 'badge-error' }}" style="border:none; cursor:pointer" title="Cliquez pour changer">
+                                {{ $u->est_actif ? 'Actif' : 'Inactif' }}
+                            </button>
+                        </form>
                     </td>
                     <td>{{ $u->zone?->nom ?? '—' }}</td>
                     <td>{{ $u->created_at->format('d/m/Y') }}</td>

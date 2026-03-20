@@ -36,10 +36,11 @@ class UserController extends Controller
         ]);
 
         $user = User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'password' => Hash::make($data['password']),
-            'zone_id'  => $data['zone_id'] ?? null,
+            'name'      => $data['name'],
+            'email'     => $data['email'],
+            'password'  => Hash::make($data['password']),
+            'zone_id'   => $data['zone_id'] ?? null,
+            'est_actif' => (bool) $request->est_actif,
         ]);
 
         $user->assignRole($data['role']);
@@ -65,9 +66,10 @@ class UserController extends Controller
         ]);
 
         $updateData = [
-            'name'    => $data['name'],
-            'email'   => $data['email'],
-            'zone_id' => $data['zone_id'] ?? null,
+            'name'      => $data['name'],
+            'email'     => $data['email'],
+            'zone_id'   => $data['zone_id'] ?? null,
+            'est_actif' => (bool) $request->est_actif,
         ];
 
         if (!empty($data['password'])) {
@@ -82,7 +84,19 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Vous ne pouvez pas supprimer votre propre compte.');
+        }
         $user->delete();
         return redirect()->route('users.index')->with('success', 'Utilisateur supprimé.');
+    }
+
+    public function toggleStatus(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Vous ne pouvez pas désactiver votre propre compte.');
+        }
+        $user->update(['est_actif' => !$user->est_actif]);
+        return back()->with('success', 'Statut mis à jour.');
     }
 }

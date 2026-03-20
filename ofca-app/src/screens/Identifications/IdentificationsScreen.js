@@ -17,7 +17,7 @@ import { COLORS, RADIUS, SHADOWS, SPACING } from '../../theme';
 import LoadingScreen from '../../components/LoadingScreen';
 
 // ─────────────────────────────────────────────────────────────
-// LEAFLET MAP HTML — avec mode TRACÉ et mode RÉVISION
+// LEAFLET MAP HTML
 // ─────────────────────────────────────────────────────────────
 function buildLeafletHTML(center, points, reviewMode = false) {
     const ptsJSON = JSON.stringify(points);
@@ -34,44 +34,31 @@ function buildLeafletHTML(center, points, reviewMode = false) {
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{width:100%;height:100%;overflow:hidden}
     #map{width:100%;height:100%}
-    .delete-btn{
-      background:#E53935;color:#fff;border:none;border-radius:50%;
-      width:22px;height:22px;font-size:14px;cursor:pointer;
-      display:flex;align-items:center;justify-content:center;
-      font-weight:bold;line-height:1;
-    }
+    .delete-btn{background:#E53935;color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;line-height:1;}
   </style>
 </head>
 <body>
 <div id="map"></div>
 <script>
-  var reviewMode = ${reviewMode ? 'true' : 'false'};
-  var map = L.map('map',{zoomControl:true,attributionControl:false}).setView([${centerLat},${centerLng}],17);
+  var reviewMode=${reviewMode ? 'true' : 'false'};
+  var map=L.map('map',{zoomControl:true,attributionControl:false}).setView([${centerLat},${centerLng}],17);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
-
   var pts=[],markers=[],polygon=null;
 
   function redraw(p){
     pts=p;
     markers.forEach(function(m){map.removeLayer(m);}); markers=[];
     if(polygon){map.removeLayer(polygon);polygon=null;}
-
     pts.forEach(function(pt,i){
-      var color = i===0?'#4CAF50':'#2196F3';
-
+      var color=i===0?'#4CAF50':'#2196F3';
       if(reviewMode){
-        // En mode révision : marqueurs cliquables avec bouton supprimer
-        var icon = L.divIcon({
+        var icon=L.divIcon({
           className:'',
-          html:'<div style="position:relative;width:28px;height:28px;">'
-            +'<div style="width:24px;height:24px;border-radius:50%;background:'+color+';border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:bold;box-shadow:0 2px 4px rgba(0,0,0,0.3);">'+(i+1)+'</div>'
-            +'</div>',
-          iconSize:[28,28], iconAnchor:[14,14]
+          html:'<div style="width:24px;height:24px;border-radius:50%;background:'+color+';border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:bold;box-shadow:0 2px 4px rgba(0,0,0,0.3);">'+(i+1)+'</div>',
+          iconSize:[28,28],iconAnchor:[14,14]
         });
-        var m = L.marker([pt.latitude,pt.longitude],{icon:icon,draggable:true});
-
-        // Popup avec bouton supprimer
-        var idx = i;
+        var m=L.marker([pt.latitude,pt.longitude],{icon:icon,draggable:true});
+        var idx=i;
         m.bindPopup(
           '<div style="text-align:center;min-width:120px;">'
           +'<b>Point '+(i+1)+'</b><br>'
@@ -79,44 +66,32 @@ function buildLeafletHTML(center, points, reviewMode = false) {
           +'<button class="delete-btn" onclick="deletePoint('+idx+')">✕ Supprimer</button>'
           +'</div>'
         );
-
-        // Déplacer un point par drag
         m.on('dragend',function(e){
-          var ll = e.target.getLatLng();
-          pts[idx] = {latitude:ll.lat, longitude:ll.lng};
+          var ll=e.target.getLatLng();
+          pts[idx]={latitude:ll.lat,longitude:ll.lng};
           window.ReactNativeWebView.postMessage(JSON.stringify({type:'pointMoved',index:idx,lat:ll.lat,lng:ll.lng}));
           redraw(pts);
         });
-
-        m.addTo(map);
-        markers.push(m);
+        m.addTo(map); markers.push(m);
       } else {
-        // Mode tracé : marqueurs simples numérotés
-        var m = L.circleMarker([pt.latitude,pt.longitude],{
-          radius:9,color:'#fff',weight:2,
-          fillColor:color,fillOpacity:1
+        var m=L.circleMarker([pt.latitude,pt.longitude],{
+          radius:9,color:'#fff',weight:2,fillColor:color,fillOpacity:1
         }).bindTooltip(String(i+1),{permanent:true,direction:'top',offset:[0,-10]});
         m.addTo(map); markers.push(m);
       }
     });
-
     if(pts.length>=2){
       var ll=pts.map(function(pt){return[pt.latitude,pt.longitude];});
       polygon=L.polygon(ll,{
-        color: reviewMode?'#FF6F00':'#1565C0',
+        color:reviewMode?'#FF6F00':'#1565C0',
         weight:2,
-        fillColor: reviewMode?'#FF6F00':'#2196F3',
+        fillColor:reviewMode?'#FF6F00':'#2196F3',
         fillOpacity:0.15
       }).addTo(map);
-
-      // En mode révision, fitter la carte sur le polygone
-      if(reviewMode && pts.length>=3){
-        map.fitBounds(polygon.getBounds(), {padding:[40,40]});
-      }
+      if(reviewMode&&pts.length>=3){map.fitBounds(polygon.getBounds(),{padding:[40,40]});}
     }
   }
 
-  // Supprimer un point (mode révision)
   function deletePoint(idx){
     map.closePopup();
     pts.splice(idx,1);
@@ -126,7 +101,6 @@ function buildLeafletHTML(center, points, reviewMode = false) {
 
   redraw(${ptsJSON});
 
-  // Tap pour ajouter un point (mode tracé seulement)
   map.on('click',function(e){
     if(!reviewMode){
       window.ReactNativeWebView.postMessage(JSON.stringify({type:'tap',lat:e.latlng.lat,lng:e.latlng.lng}));
@@ -136,13 +110,9 @@ function buildLeafletHTML(center, points, reviewMode = false) {
   window.addEventListener('message',function(ev){
     try{
       var msg=JSON.parse(ev.data);
-      if(msg.type==='update'){ pts=msg.points; redraw(pts); }
-      if(msg.type==='center'){ map.setView([msg.lat,msg.lng],17); }
-      if(msg.type==='setReview'){
-        reviewMode=msg.value;
-        redraw(pts);
-      }
-      if(msg.type==='fitBounds' && pts.length>=2){
+      if(msg.type==='update'){pts=msg.points;redraw(pts);}
+      if(msg.type==='center'){map.setView([msg.lat,msg.lng],17);}
+      if(msg.type==='fitBounds'&&pts.length>=2){
         var bounds=L.latLngBounds(pts.map(function(p){return[p.latitude,p.longitude];}));
         map.fitBounds(bounds,{padding:[40,40]});
       }
@@ -190,7 +160,14 @@ const saveParcelle = async (data) => {
     try {
         const raw = await AsyncStorage.getItem(PARCELLES_KEY);
         const existing = raw ? JSON.parse(raw) : [];
-        const entry = { id: Date.now().toString(), date: new Date().toLocaleDateString('fr-FR'), nom: data.nom_parcelle, superficie: data.superficie, coordonnees: data.coordonnees_polygon, payload: data };
+        const entry = {
+            id: Date.now().toString(),
+            date: new Date().toLocaleDateString('fr-FR'),
+            nom: data.nom_parcelle,
+            superficie: data.superficie,
+            coordonnees: data.coordonnees_polygon,
+            payload: data,
+        };
         await AsyncStorage.setItem(PARCELLES_KEY, JSON.stringify([...existing, entry]));
         return entry;
     } catch { return null; }
@@ -201,7 +178,13 @@ const saveParcelle = async (data) => {
 // ─────────────────────────────────────────────────────────────
 const DateInput = ({ label, value, onChange }) => (
     <View style={styles.dateRow}>
-        <TextInput style={styles.dateInput} value={value} onChangeText={onChange} placeholder={label} placeholderTextColor={COLORS.textDisabled} />
+        <TextInput
+            style={styles.dateInput}
+            value={value}
+            onChangeText={onChange}
+            placeholder={label}
+            placeholderTextColor={COLORS.textDisabled}
+        />
         <MaterialCommunityIcons name="calendar-month-outline" size={22} color={COLORS.textDisabled} style={styles.dateIcon} />
     </View>
 );
@@ -266,12 +249,11 @@ export default function IdentificationsScreen({ navigation }) {
     const [signatureVisible, setSignatureVisible] = useState(false);
     const refSignature = useRef();
 
-    // ── Map state ─────────────────────────────────────────────
     const [mapVisible, setMapVisible] = useState(false);
     const [mapCenter, setMapCenter] = useState({ latitude: 6.1319, longitude: 1.2228 });
     const [polygonCoords, setPolygonCoords] = useState([]);
     const [coordonnees, setCoordonnees] = useState(null);
-    const [reviewMode, setReviewMode] = useState(false); // ← NOUVEAU
+    const [reviewMode, setReviewMode] = useState(false);
     const webViewRef = useRef(null);
 
     const [offlineReady, setOfflineReady] = useState(false);
@@ -307,10 +289,14 @@ export default function IdentificationsScreen({ navigation }) {
     const takePhoto = async () => {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') { Alert.alert('Permission', 'La caméra est nécessaire.'); return; }
-        const result = await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [4, 3], quality: 0.7 });
+        const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true, aspect: [4, 3], quality: 0.7,
+        });
         if (!result.canceled) setPhotoURI(result.assets[0].uri);
     };
 
+    // ── Signature ─────────────────────────────────────────────
     const handleSignature = (sig) => {
         setSignatureURI(sig);
         setSignatureVisible(false);
@@ -321,7 +307,7 @@ export default function IdentificationsScreen({ navigation }) {
         setSignatureURI(null);
     };
 
-    // ── Ouvrir la carte ───────────────────────────────────────
+    // ── Carte ─────────────────────────────────────────────────
     const openMap = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') { Alert.alert('Permission', 'Localisation requise.'); return; }
@@ -334,7 +320,6 @@ export default function IdentificationsScreen({ navigation }) {
         setMapVisible(true);
     };
 
-    // ── Ajouter point par tap ─────────────────────────────────
     const addPointToPolygon = (coord) => {
         setPolygonCoords(prev => {
             const newCoords = [...prev, coord];
@@ -348,7 +333,6 @@ export default function IdentificationsScreen({ navigation }) {
         });
     };
 
-    // ── Ajouter point GPS ─────────────────────────────────────
     const captureUserLocationPoint = async () => {
         try {
             const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest });
@@ -362,33 +346,24 @@ export default function IdentificationsScreen({ navigation }) {
         } catch { Alert.alert('Erreur GPS', 'Signal trop faible.'); }
     };
 
-    // ── Passer en mode révision ───────────────────────────────
     const goToReviewMode = () => {
         if (polygonCoords.length < 3) {
             Alert.alert('Insuffisant', 'Ajoutez au moins 3 points pour délimiter la parcelle.');
             return;
         }
         setReviewMode(true);
-        // Dire à la WebView de passer en mode révision + fitter
         webViewRef.current?.injectJavaScript(`
-            reviewMode = true;
-            redraw(pts);
+            reviewMode=true; redraw(pts);
             window.dispatchEvent(new MessageEvent('message',{data:'{"type":"fitBounds"}'}));
             true;
         `);
     };
 
-    // ── Retour au mode tracé ──────────────────────────────────
     const backToDrawMode = () => {
         setReviewMode(false);
-        webViewRef.current?.injectJavaScript(`
-            reviewMode = false;
-            redraw(pts);
-            true;
-        `);
+        webViewRef.current?.injectJavaScript(`reviewMode=false; redraw(pts); true;`);
     };
 
-    // ── Supprimer un point depuis la WebView ──────────────────
     const handleDeletePoint = (index) => {
         setPolygonCoords(prev => {
             const newCoords = prev.filter((_, i) => i !== index);
@@ -398,7 +373,6 @@ export default function IdentificationsScreen({ navigation }) {
         });
     };
 
-    // ── Déplacer un point depuis la WebView ───────────────────
     const handlePointMoved = (index, lat, lng) => {
         setPolygonCoords(prev => {
             const newCoords = [...prev];
@@ -408,16 +382,11 @@ export default function IdentificationsScreen({ navigation }) {
         });
     };
 
-    // ── Valider depuis le mode révision ───────────────────────
     const validateFromReview = () => {
-        if (polygonCoords.length < 3) {
-            Alert.alert('Insuffisant', 'Il faut au moins 3 points.');
-            return;
-        }
+        if (polygonCoords.length < 3) { Alert.alert('Insuffisant', 'Il faut au moins 3 points.'); return; }
         setCoordonnees(polygonCoords);
         setMapVisible(false);
         setReviewMode(false);
-
         Alert.alert('📴 Cartes hors ligne', 'Télécharger les cartes de cette zone ?', [
             { text: 'Non merci' },
             { text: 'Télécharger', onPress: () => handleDownloadTiles(polygonCoords) },
@@ -502,7 +471,8 @@ export default function IdentificationsScreen({ navigation }) {
         } catch (apiError) {
             const saved = await saveParcelle(payload);
             if (saved) {
-                Alert.alert('📴 Sauvegardé localement', `"${nomParcelle}" sera synchronisé dès que vous aurez internet.`,
+                Alert.alert('📴 Sauvegardé localement',
+                    `"${nomParcelle}" sera synchronisé dès que vous aurez internet.`,
                     [{ text: 'OK', onPress: () => navigation.goBack() }]);
             } else {
                 Alert.alert('Erreur', apiError.response?.data?.message || 'Problème d\'enregistrement.');
@@ -515,7 +485,12 @@ export default function IdentificationsScreen({ navigation }) {
     const renderToggle = (label, value, onValueChange) => (
         <View style={styles.toggleRow}>
             <Text style={styles.toggleLabel}>{label}</Text>
-            <Switch trackColor={{ false: COLORS.border, true: COLORS.identification }} thumbColor="#fff" onValueChange={onValueChange} value={value} />
+            <Switch
+                trackColor={{ false: COLORS.border, true: COLORS.identification }}
+                thumbColor="#fff"
+                onValueChange={onValueChange}
+                value={value}
+            />
         </View>
     );
 
@@ -534,6 +509,7 @@ export default function IdentificationsScreen({ navigation }) {
         <View style={styles.container}>
             <ScrollView style={styles.scrollArea} showsVerticalScrollIndicator={false}>
 
+                {/* ── Infos générales ─────────────────────── */}
                 <View style={styles.card}>
                     {renderPicker('Village', selectedVillage, setSelectedVillage, villages, 'nom', 'id')}
                     {renderPicker('Organisation paysanne', selectedOrganisation, setSelectedOrganisation, organisations, 'nom', 'id')}
@@ -565,6 +541,7 @@ export default function IdentificationsScreen({ navigation }) {
                     )}
                 </View>
 
+                {/* ── Historique ──────────────────────────── */}
                 <View style={styles.sectionBlock}>
                     <View style={styles.sectionRow}>
                         <Text style={styles.sectionBigTitle}>Historique</Text>
@@ -575,6 +552,7 @@ export default function IdentificationsScreen({ navigation }) {
                     {historique.length === 0 && <Text style={styles.emptyText}>Aucun historique ajouté</Text>}
                 </View>
 
+                {/* ── Agriculture Bio ─────────────────────── */}
                 <View style={styles.sectionBlock}>
                     <Text style={styles.sectionBigTitle}>COMPRÉHENSION DE L'AGRICULTURE BIOLOGIQUE ET LA GESTION DE L'ENVIRONNEMENT</Text>
                 </View>
@@ -595,11 +573,20 @@ export default function IdentificationsScreen({ navigation }) {
                     {renderToggle('Stockage', stockage, setStockage)}
                 </View>
 
+                {/* ── Commentaire ─────────────────────────── */}
                 <View style={styles.commentCard}>
-                    <TextInput style={styles.commentInput} value={commentaire} onChangeText={setCommentaire}
-                        placeholder="Commentaire" placeholderTextColor={COLORS.textDisabled} multiline numberOfLines={3} />
+                    <TextInput
+                        style={styles.commentInput}
+                        value={commentaire}
+                        onChangeText={setCommentaire}
+                        placeholder="Commentaire"
+                        placeholderTextColor={COLORS.textDisabled}
+                        multiline
+                        numberOfLines={3}
+                    />
                 </View>
 
+                {/* ── Calendrier Cultural ─────────────────── */}
                 <View style={styles.sectionBlock}>
                     <Text style={styles.sectionBigTitle}>CALENDRIER DES OPÉRATIONS CULTURALES, CULTURES À CERTIFIER</Text>
                 </View>
@@ -612,6 +599,7 @@ export default function IdentificationsScreen({ navigation }) {
                     <DateInput label="Récolte" value={dateRecolte} onChange={setDateRecolte} />
                 </View>
 
+                {/* ── Arbres ──────────────────────────────── */}
                 <View style={styles.sectionBlock}>
                     <View style={styles.sectionRow}>
                         <Text style={styles.sectionBigTitle}>Arbres</Text>
@@ -619,7 +607,8 @@ export default function IdentificationsScreen({ navigation }) {
                             <MaterialCommunityIcons name="plus-box-outline" size={28} color={COLORS.textSecondary} />
                         </TouchableOpacity>
                     </View>
-                    {arbres.length === 0 ? <Text style={styles.emptyText}>Aucun arbre ajouté</Text>
+                    {arbres.length === 0
+                        ? <Text style={styles.emptyText}>Aucun arbre ajouté</Text>
                         : arbres.map((a, i) => (
                             <View key={i} style={styles.arbreRow}>
                                 <Text style={styles.arbreText}>{a.nom}</Text>
@@ -628,13 +617,17 @@ export default function IdentificationsScreen({ navigation }) {
                         ))}
                 </View>
 
+                {/* ── Isolement Parcelle ──────────────────── */}
                 <View style={styles.card}>
                     {renderPicker('Niveau de pente', niveauPente, setNiveauPente, [
-                        { label: 'Sans pente', value: 'WITHOUT' }, { label: 'Faible', value: 'LOW' },
-                        { label: 'Modérée', value: 'MODERATE' }, { label: 'Forte', value: 'HIGH' },
+                        { label: 'Sans pente', value: 'WITHOUT' },
+                        { label: 'Faible', value: 'LOW' },
+                        { label: 'Modérée', value: 'MODERATE' },
+                        { label: 'Forte', value: 'HIGH' },
                     ], 'label', 'value')}
                     {renderPicker('Type de culture', typeCulture, setTypeCulture, [
-                        { label: 'Culture unique', value: 'SINGLE' }, { label: 'Culture mixte', value: 'MIXED' },
+                        { label: 'Culture unique', value: 'SINGLE' },
+                        { label: 'Culture mixte', value: 'MIXED' },
                         { label: 'Agroforesterie', value: 'AGROFORESTRY' },
                     ], 'label', 'value')}
                     <View style={styles.inlineToggle}>
@@ -653,11 +646,14 @@ export default function IdentificationsScreen({ navigation }) {
                     ], 'label', 'value')}
                 </View>
 
+                {/* ── Photo ───────────────────────────────── */}
                 <TouchableOpacity style={styles.photoBox} onPress={takePhoto}>
-                    {photoURI ? <Image source={{ uri: photoURI }} style={styles.fullImage} />
+                    {photoURI
+                        ? <Image source={{ uri: photoURI }} style={styles.fullImage} />
                         : <MaterialCommunityIcons name="image-outline" size={48} color={COLORS.textDisabled} />}
                 </TouchableOpacity>
 
+                {/* ── Signature ───────────────────────────── */}
                 <View style={styles.signatureSection}>
                     <View style={styles.signatureHeader}>
                         <Text style={styles.signatureLabel}>Signature du producteur</Text>
@@ -668,12 +664,25 @@ export default function IdentificationsScreen({ navigation }) {
                         )}
                     </View>
                     <TouchableOpacity style={styles.signatureBox} onPress={() => setSignatureVisible(true)}>
-                        {signatureURI && <Image source={{ uri: signatureURI }} style={styles.fullImage} resizeMode="contain" />}
+                        {signatureURI
+                            ? <Image source={{ uri: signatureURI }} style={styles.fullImage} resizeMode="contain" />
+                            : <View style={styles.signaturePlaceholder}>
+                                <MaterialCommunityIcons name="draw" size={32} color={COLORS.textDisabled} />
+                                <Text style={styles.signaturePlaceholderText}>Appuyer pour signer</Text>
+                            </View>
+                        }
                     </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity style={[styles.submitBtn, submitting && styles.btnDisabled]} onPress={handleSubmit} disabled={submitting}>
-                    {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Sauvegarder</Text>}
+                {/* ── Bouton Sauvegarder ──────────────────── */}
+                <TouchableOpacity
+                    style={[styles.submitBtn, submitting && styles.btnDisabled]}
+                    onPress={handleSubmit}
+                    disabled={submitting}
+                >
+                    {submitting
+                        ? <ActivityIndicator color="#fff" />
+                        : <Text style={styles.submitBtnText}>Sauvegarder</Text>}
                 </TouchableOpacity>
 
                 <View style={{ height: 60 }} />
@@ -684,23 +693,17 @@ export default function IdentificationsScreen({ navigation }) {
                 <MaterialCommunityIcons name={offlineReady ? 'wifi-off' : 'wifi'} size={14} color="#fff" />
             </View>
 
-            {/* ── Modal CARTE ──────────────────────────────── */}
+            {/* ══════════════════════════════════════════════
+                Modal CARTE
+            ══════════════════════════════════════════════ */}
             <Modal visible={mapVisible} animationType="fade" statusBarTranslucent>
                 <View style={styles.modalFull}>
 
-                    {/* Header de la carte avec titre selon le mode */}
                     <View style={styles.mapHeader}>
-                        <TouchableOpacity
-                            style={styles.mapHeaderBack}
-                            onPress={() => {
-                                if (reviewMode) {
-                                    backToDrawMode();
-                                } else {
-                                    setPolygonCoords([]);
-                                    setMapVisible(false);
-                                }
-                            }}
-                        >
+                        <TouchableOpacity style={styles.mapHeaderBack} onPress={() => {
+                            if (reviewMode) backToDrawMode();
+                            else { setPolygonCoords([]); setMapVisible(false); }
+                        }}>
                             <MaterialCommunityIcons name="arrow-left" size={24} color="#111" />
                         </TouchableOpacity>
                         <Text style={styles.mapHeaderTitle}>
@@ -728,7 +731,6 @@ export default function IdentificationsScreen({ navigation }) {
                         javaScriptEnabled domStorageEnabled originWhitelist={['*']} scrollEnabled={false}
                     />
 
-                    {/* Superficie overlay */}
                     <View style={styles.mapOverlayTop}>
                         <Text style={styles.mapAreaText}>
                             {polygonCoords.length >= 3 ? calculateAreaInHectares(polygonCoords) : '0.00'} ha
@@ -736,7 +738,7 @@ export default function IdentificationsScreen({ navigation }) {
                         <Text style={styles.mapPointsText}>{polygonCoords.length} point(s)</Text>
                     </View>
 
-                    {/* ── Mode TRACÉ : boutons normaux ────────── */}
+                    {/* Mode tracé */}
                     {!reviewMode && (
                         <>
                             <TouchableOpacity style={styles.btnCenterMap} onPress={captureUserLocationPoint}>
@@ -747,14 +749,14 @@ export default function IdentificationsScreen({ navigation }) {
                                     <MaterialCommunityIcons name="plus-circle" size={32} color="#fff" />
                                     <Text style={styles.mapActionText}>Point GPS</Text>
                                 </TouchableOpacity>
-                                {/* Bouton Réviser — apparaît dès 3 points */}
                                 {polygonCoords.length >= 3 && (
                                     <TouchableOpacity style={[styles.mapActionBtn, { backgroundColor: '#FF6F00' }]} onPress={goToReviewMode}>
                                         <MaterialCommunityIcons name="eye-outline" size={32} color="#fff" />
                                         <Text style={styles.mapActionText}>Réviser</Text>
                                     </TouchableOpacity>
                                 )}
-                                <TouchableOpacity style={[styles.mapActionBtn, { backgroundColor: COLORS.error }]}
+                                <TouchableOpacity
+                                    style={[styles.mapActionBtn, { backgroundColor: COLORS.error }]}
                                     onPress={() => { setPolygonCoords([]); setMapVisible(false); }}>
                                     <MaterialCommunityIcons name="close-circle" size={32} color="#fff" />
                                     <Text style={styles.mapActionText}>Annuler</Text>
@@ -763,7 +765,7 @@ export default function IdentificationsScreen({ navigation }) {
                         </>
                     )}
 
-                    {/* ── Mode RÉVISION : infos + actions ────── */}
+                    {/* Mode révision */}
                     {reviewMode && (
                         <View style={styles.reviewPanel}>
                             <View style={styles.reviewInfo}>
@@ -772,41 +774,30 @@ export default function IdentificationsScreen({ navigation }) {
                                     Appuyez sur un point pour le supprimer ou le déplacer
                                 </Text>
                             </View>
-
-                            {/* Liste des points */}
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pointsList}>
                                 {polygonCoords.map((pt, i) => (
                                     <TouchableOpacity
                                         key={i}
                                         style={[styles.pointChip, i === 0 && styles.pointChipFirst]}
-                                        onPress={() => {
-                                            Alert.alert(
-                                                `Point ${i + 1}`,
-                                                `Lat: ${pt.latitude.toFixed(6)}\nLng: ${pt.longitude.toFixed(6)}`,
-                                                [
-                                                    { text: 'Fermer' },
-                                                    {
-                                                        text: '🗑 Supprimer',
-                                                        style: 'destructive',
-                                                        onPress: () => {
-                                                            handleDeletePoint(i);
-                                                            webViewRef.current?.injectJavaScript(`
-                                                                pts.splice(${i},1);
-                                                                redraw(pts);
-                                                                true;
-                                                            `);
-                                                        }
-                                                    },
-                                                ]
-                                            );
-                                        }}
+                                        onPress={() => Alert.alert(
+                                            `Point ${i + 1}`,
+                                            `Lat: ${pt.latitude.toFixed(6)}\nLng: ${pt.longitude.toFixed(6)}`,
+                                            [
+                                                { text: 'Fermer' },
+                                                {
+                                                    text: '🗑 Supprimer', style: 'destructive',
+                                                    onPress: () => {
+                                                        handleDeletePoint(i);
+                                                        webViewRef.current?.injectJavaScript(`pts.splice(${i},1);redraw(pts);true;`);
+                                                    }
+                                                },
+                                            ]
+                                        )}
                                     >
                                         <Text style={styles.pointChipText}>{i + 1}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
-
-                            {/* Boutons révision */}
                             <View style={styles.reviewBtns}>
                                 <TouchableOpacity style={styles.reviewBtnModifier} onPress={backToDrawMode}>
                                     <MaterialCommunityIcons name="pencil" size={20} color="#111" />
@@ -822,56 +813,84 @@ export default function IdentificationsScreen({ navigation }) {
                 </View>
             </Modal>
 
-            {/* ── Modal Signature ──────────────────────────── */}
+            {/* ══════════════════════════════════════════════
+                Modal SIGNATURE — boutons toujours visibles
+            ══════════════════════════════════════════════ */}
             <Modal visible={signatureVisible} animationType="slide">
-                <View style={{ flex: 1, backgroundColor: '#f9f9f9' }}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Signature du producteur</Text>
-                        <Text style={{ fontSize: 13, color: '#666', marginTop: 4 }}>Signez à l'intérieur du cadre blanc</Text>
+                <View style={styles.sigContainer}>
+
+                    {/* Header */}
+                    <View style={styles.sigHeader}>
+                        <Text style={styles.sigTitle}>Signature du producteur</Text>
+                        <Text style={styles.sigSubtitle}>Signez dans le cadre blanc ci-dessous</Text>
                     </View>
-                    
-                    <View style={{ flex: 1, backgroundColor: '#fff', margin: 10, borderRadius: 12, overflow: 'hidden', elevation: 4 }}>
+
+                    {/* Zone de signature — hauteur FIXE */}
+                    <View style={styles.sigCanvas}>
                         <SignatureScreen
                             ref={refSignature}
                             onOK={handleSignature}
-                            descriptionText="Signature du producteur"
-                            clearText="Effacer"
-                            confirmText="Valider"
+                            onEmpty={() => Alert.alert('Attention', 'Veuillez signer avant de valider.')}
+                            descriptionText=""
                             webStyle={`
-                                .m-signature-pad { border: none; box-shadow: none; height: 100%; }
-                                .m-signature-pad--body { border: none; }
-                                .m-signature-pad--footer { 
-                                    display: flex; 
-                                    justify-content: space-around; 
-                                    padding: 15px;
-                                    background: #f5f5f5;
-                                }
-                                .button { 
-                                    background-color: #1A1A2E; 
-                                    color: #fff; 
-                                    padding: 10px 25px; 
-                                    border-radius: 8px;
-                                    font-size: 16px;
-                                    font-weight: bold;
-                                }
-                                .button.clear { background-color: #E53935; }
+                                .m-signature-pad { border:none; box-shadow:none; height:100%; }
+                                .m-signature-pad--footer { display:none; }
+                                body,html { height:100%; overflow:hidden; background:#fff; }
                             `}
                         />
                     </View>
 
-                    <TouchableOpacity style={styles.closeSignBtn} onPress={() => setSignatureVisible(false)}>
-                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Annuler</Text>
+                    {/* Boutons natifs — toujours visibles en bas */}
+                    <View style={styles.sigBtns}>
+                        <TouchableOpacity
+                            style={styles.sigBtnEffacer}
+                            onPress={() => refSignature.current?.clearSignature()}
+                        >
+                            <MaterialCommunityIcons name="eraser" size={22} color="#fff" />
+                            <Text style={styles.sigBtnText}>Effacer</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.sigBtnValider}
+                            onPress={() => refSignature.current?.readSignature()}
+                        >
+                            <MaterialCommunityIcons name="check-circle" size={22} color="#fff" />
+                            <Text style={styles.sigBtnText}>Valider</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <TouchableOpacity
+                        style={styles.sigBtnAnnuler}
+                        onPress={() => setSignatureVisible(false)}
+                    >
+                        <Text style={styles.sigBtnAnnulerText}>Annuler et fermer</Text>
                     </TouchableOpacity>
+
                 </View>
             </Modal>
 
-            {/* ── Modal Arbre ───────────────────────────────── */}
+            {/* ══════════════════════════════════════════════
+                Modal ARBRE
+            ══════════════════════════════════════════════ */}
             <Modal visible={showArbreModal} transparent animationType="slide">
                 <View style={styles.arbreModalOverlay}>
                     <View style={styles.arbreModalBox}>
                         <Text style={styles.arbreModalTitle}>Ajouter un arbre</Text>
-                        <TextInput style={styles.arbreInput} value={currentArbreNom} onChangeText={setCurrentArbreNom} placeholder="Nom de l'arbre" placeholderTextColor={COLORS.textDisabled} />
-                        <TextInput style={styles.arbreInput} value={currentArbreNombre} onChangeText={setCurrentArbreNombre} placeholder="Nombre" keyboardType="numeric" placeholderTextColor={COLORS.textDisabled} />
+                        <TextInput
+                            style={styles.arbreInput}
+                            value={currentArbreNom}
+                            onChangeText={setCurrentArbreNom}
+                            placeholder="Nom de l'arbre"
+                            placeholderTextColor={COLORS.textDisabled}
+                        />
+                        <TextInput
+                            style={styles.arbreInput}
+                            value={currentArbreNombre}
+                            onChangeText={setCurrentArbreNombre}
+                            placeholder="Nombre"
+                            keyboardType="numeric"
+                            placeholderTextColor={COLORS.textDisabled}
+                        />
                         <View style={styles.arbreModalBtns}>
                             <TouchableOpacity style={styles.arbreBtnCancel} onPress={() => setShowArbreModal(false)}>
                                 <Text style={styles.arbreBtnText}>Annuler</Text>
@@ -884,7 +903,7 @@ export default function IdentificationsScreen({ navigation }) {
                 </View>
             </Modal>
 
-            {/* ── Overlay téléchargement ────────────────────── */}
+            {/* Overlay téléchargement */}
             {downloadingTiles && (
                 <View style={styles.downloadOverlay}>
                     <ActivityIndicator size="large" color="#fff" />
@@ -899,11 +918,14 @@ export default function IdentificationsScreen({ navigation }) {
     );
 }
 
+// ─────────────────────────────────────────────────────────────
+// STYLES
+// ─────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F5F5F5' },
     scrollArea: { flex: 1 },
 
-    card: { backgroundColor: '#fff', marginHorizontal: 0, marginBottom: 8, paddingVertical: 4 },
+    card: { backgroundColor: '#fff', marginBottom: 8, paddingVertical: 4 },
     togglesCard: { backgroundColor: '#fff', marginBottom: 8 },
     calendarCard: { backgroundColor: '#fff', marginBottom: 8, paddingHorizontal: 16, paddingVertical: 8 },
     commentCard: { backgroundColor: '#fff', marginBottom: 8, paddingHorizontal: 16, paddingVertical: 8 },
@@ -933,6 +955,7 @@ const styles = StyleSheet.create({
     inlineToggleLabel: { fontSize: 15, color: '#111', flex: 1 },
 
     commentInput: { fontSize: 14, color: '#111', minHeight: 80, textAlignVertical: 'top', paddingTop: 8 },
+
     dateRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 8, paddingHorizontal: 12, marginBottom: 10, backgroundColor: '#fff' },
     dateInput: { flex: 1, height: 50, fontSize: 14, color: '#111' },
     dateIcon: { marginLeft: 8 },
@@ -947,7 +970,9 @@ const styles = StyleSheet.create({
     signatureSection: { backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, marginBottom: 8 },
     signatureHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
     signatureLabel: { fontSize: 15, color: '#111', fontWeight: '600' },
-    signatureBox: { height: 160, borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 8, backgroundColor: '#FAFAFA', overflow: 'hidden' },
+    signatureBox: { height: 160, borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 8, backgroundColor: '#FAFAFA', overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
+    signaturePlaceholder: { alignItems: 'center', gap: 8 },
+    signaturePlaceholderText: { fontSize: 13, color: COLORS.textDisabled },
 
     submitBtn: { backgroundColor: '#1A1A2E', margin: 16, padding: 18, borderRadius: 40, alignItems: 'center' },
     submitBtnText: { color: '#fff', fontWeight: '900', fontSize: 16 },
@@ -955,67 +980,51 @@ const styles = StyleSheet.create({
 
     offlinePill: { position: 'absolute', bottom: 100, right: 16, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', elevation: 6 },
 
-    // ── Map modal ──────────────────────────────────────────────
+    // ── Map ───────────────────────────────────────────────────
     modalFull: { flex: 1 },
     map: { flex: 1 },
-
-    // Header carte
-    mapHeader: {
-        flexDirection: 'row', alignItems: 'center',
-        paddingHorizontal: 16, paddingTop: 50, paddingBottom: 12,
-        backgroundColor: '#fff', elevation: 3,
-    },
+    mapHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 50, paddingBottom: 12, backgroundColor: '#fff', elevation: 3 },
     mapHeaderBack: { padding: 4, marginRight: 10 },
     mapHeaderTitle: { flex: 1, fontSize: 16, fontWeight: '800', color: '#111' },
     mapHeaderBadge: { backgroundColor: '#FF6F00', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
     mapHeaderBadgeText: { color: '#fff', fontSize: 12, fontWeight: '800' },
-
-    // Overlay superficie
     mapOverlayTop: { position: 'absolute', top: 110, left: 20, right: 20, backgroundColor: 'rgba(255,255,255,0.93)', padding: 10, borderRadius: 12, alignItems: 'center' },
     mapAreaText: { fontSize: 20, fontWeight: '900', color: COLORS.identification },
     mapPointsText: { fontSize: 12, color: COLORS.textDisabled, marginTop: 2 },
-
-    // Bouton centrer
     btnCenterMap: { position: 'absolute', right: 16, top: 180, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.95)', alignItems: 'center', justifyContent: 'center', elevation: 5 },
     centerOuter: { width: 32, height: 32, borderRadius: 16, borderWidth: 3, borderColor: '#333', alignItems: 'center', justifyContent: 'center' },
     centerInner: { width: 9, height: 9, borderRadius: 5, backgroundColor: '#333' },
-
-    // Boutons mode tracé
     mapControls: { position: 'absolute', bottom: 40, left: 20, right: 20, flexDirection: 'row', justifyContent: 'center', gap: 12 },
     mapActionBtn: { backgroundColor: COLORS.identification, padding: 14, borderRadius: 20, alignItems: 'center', minWidth: 85 },
     mapActionText: { color: '#fff', fontWeight: '800', fontSize: 11, marginTop: 4 },
 
-    // Panneau révision
-    reviewPanel: {
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 20, borderTopRightRadius: 20,
-        padding: 16, elevation: 10,
-    },
+    reviewPanel: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, elevation: 10 },
     reviewInfo: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
     reviewInfoText: { fontSize: 12, color: '#666', flex: 1 },
-
     pointsList: { marginBottom: 14 },
-    pointChip: {
-        width: 36, height: 36, borderRadius: 18,
-        backgroundColor: '#2196F3', alignItems: 'center', justifyContent: 'center',
-        marginRight: 8, elevation: 2,
-    },
+    pointChip: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#2196F3', alignItems: 'center', justifyContent: 'center', marginRight: 8, elevation: 2 },
     pointChipFirst: { backgroundColor: '#4CAF50' },
     pointChipText: { color: '#fff', fontWeight: '900', fontSize: 13 },
-
     reviewBtns: { flexDirection: 'row', gap: 12 },
     reviewBtnModifier: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F0F0F0', borderRadius: 14, padding: 14, gap: 6 },
     reviewBtnModifierText: { fontWeight: '800', color: '#111', fontSize: 15 },
     reviewBtnValider: { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1565C0', borderRadius: 14, padding: 14, gap: 6 },
     reviewBtnValiderText: { fontWeight: '800', color: '#fff', fontSize: 15 },
 
-    // Signature modal
-    modalHeader: { paddingTop: 60, paddingBottom: 20, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
-    modalTitle: { fontSize: 18, fontWeight: '800' },
-    closeSignBtn: { position: 'absolute', bottom: 40, alignSelf: 'center', backgroundColor: COLORS.error, paddingHorizontal: 30, paddingVertical: 15, borderRadius: 30 },
+    // ── Signature Modal ───────────────────────────────────────
+    sigContainer: { flex: 1, backgroundColor: '#F5F5F5' },
+    sigHeader: { paddingTop: 55, paddingBottom: 16, paddingHorizontal: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#E0E0E0', alignItems: 'center' },
+    sigTitle: { fontSize: 18, fontWeight: '800', color: '#111' },
+    sigSubtitle: { fontSize: 13, color: '#666', marginTop: 4 },
+    sigCanvas: { height: 320, backgroundColor: '#fff', margin: 16, borderRadius: 12, overflow: 'hidden', elevation: 3, borderWidth: 1, borderColor: '#E0E0E0' },
+    sigBtns: { flexDirection: 'row', paddingHorizontal: 16, gap: 12, marginBottom: 12 },
+    sigBtnEffacer: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#757575', padding: 16, borderRadius: 12, gap: 8 },
+    sigBtnValider: { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#2E7D32', padding: 16, borderRadius: 12, gap: 8 },
+    sigBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+    sigBtnAnnuler: { padding: 14, alignItems: 'center' },
+    sigBtnAnnulerText: { color: '#E53935', fontWeight: '700', fontSize: 15 },
 
-    // Arbre modal
+    // ── Arbre Modal ───────────────────────────────────────────
     arbreModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     arbreModalBox: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24 },
     arbreModalTitle: { fontSize: 18, fontWeight: '800', marginBottom: 16 },
@@ -1025,7 +1034,7 @@ const styles = StyleSheet.create({
     arbreBtnAdd: { flex: 1, backgroundColor: COLORS.identification, borderRadius: 10, padding: 14, alignItems: 'center' },
     arbreBtnText: { fontWeight: 'bold', fontSize: 15 },
 
-    // Download
+    // ── Download Overlay ──────────────────────────────────────
     downloadOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center', gap: 16 },
     downloadText: { color: '#fff', fontWeight: '800', fontSize: 16 },
     progressBar: { width: '70%', height: 10, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 5, overflow: 'hidden' },

@@ -12,6 +12,12 @@
             <div class="form-group"><label class="form-label required">Rôle</label><select name="role" class="form-select" required><option value="">—</option>@foreach($roles as $r)<option value="{{ $r->name }}" {{ old('role', isset($user) ? $user->roles->first()?->name : '') === $r->name ? 'selected' : '' }}>{{ ucfirst($r->name) }}</option>@endforeach</select>@error('role')<div class="form-error">{{ $message }}</div>@enderror</div>
             <div class="form-group"><label class="form-label">Zone</label><select name="zone_id" class="form-select"><option value="">— Aucune —</option>@foreach($zones as $z)<option value="{{ $z->id }}" {{ old('zone_id', $user->zone_id ?? '') == $z->id ? 'selected' : '' }}>{{ $z->nom }}</option>@endforeach</select></div>
         </div>
+        <div class="form-group">
+            <label class="form-label" style="display:flex; align-items:center; gap:10px; cursor:pointer">
+                <input type="checkbox" name="est_actif" value="1" {{ old('est_actif', $user->est_actif ?? true) ? 'checked' : '' }}>
+                <span>Compte actif / autorisé à se connecter</span>
+            </label>
+        </div>
         <div style="display:flex;gap:10px;justify-content:flex-end"><a href="{{ route('users.index') }}" class="btn-secondary-custom">Annuler</a><button type="submit" class="btn-primary-custom"><i data-lucide="check" style="width:16px;height:16px"></i> {{ isset($user) ? 'Mettre à jour' : 'Créer' }}</button></div>
     </form></div></div>
 @endsection

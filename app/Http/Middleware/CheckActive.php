@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
+
+class CheckActive
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (Auth::check() && !Auth::user()->est_actif) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->with('error', 'Votre compte a été désactivé par l\'administrateur.');
+        }
+
+        return $next($request);
+    }
+}

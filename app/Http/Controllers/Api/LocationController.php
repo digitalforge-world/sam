@@ -9,6 +9,7 @@ use App\Models\Canton;
 use App\Models\Village;
 use App\Models\Zone;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class LocationController extends Controller
 {
@@ -61,13 +62,20 @@ class LocationController extends Controller
      */
     public function store_village(Request $request)
     {
-        $request->validate([
+        $hasCommunesTable = Schema::hasTable('communes');
+
+        $rules = [
             'region_id'    => 'required|exists:regions,id',
             'prefecture_id' => 'required|exists:prefectures,id',
-            'commune_id'   => 'nullable|exists:communes,id',
             'canton_id'    => 'required|exists:cantons,id',
             'nom'          => 'required|string|max:255',
-        ]);
+        ];
+
+        if ($hasCommunesTable) {
+            $rules['commune_id'] = 'nullable|exists:communes,id';
+        }
+
+        $request->validate($rules);
 
         $villageData = [
             'region_id'    => $request->region_id,
@@ -77,8 +85,11 @@ class LocationController extends Controller
             'zone'         => $request->zone ?? null,
         ];
 
-        if ($request->filled('commune_id')) {
-            $villageData['commune_id'] = $request->commune_id;
+        if ($hasCommunesTable && $request->filled('commune_id')) {
+            // Uniquement si la colonne existe (evite erreur si migration pas faite)
+            if (Schema::hasColumn('villages', 'commune_id')) {
+                $villageData['commune_id'] = $request->commune_id;
+            }
         }
 
         $village = Village::create($villageData);

@@ -17,7 +17,7 @@ import { COLORS, RADIUS, SHADOWS, SPACING } from '../../theme';
 import LoadingScreen from '../../components/LoadingScreen';
 
 // ─────────────────────────────────────────────────────────────
-// LEAFLET MAP HTML
+// LEAFLET MAP HTML — CartoDB tiles (pas de blocage Access)
 // ─────────────────────────────────────────────────────────────
 function buildLeafletHTML(center, points, reviewMode = false) {
     const ptsJSON = JSON.stringify(points);
@@ -28,6 +28,7 @@ function buildLeafletHTML(center, points, reviewMode = false) {
 <html>
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="referrer" content="origin">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
@@ -42,7 +43,13 @@ function buildLeafletHTML(center, points, reviewMode = false) {
 <script>
   var reviewMode=${reviewMode ? 'true' : 'false'};
   var map=L.map('map',{zoomControl:true,attributionControl:false}).setView([${centerLat},${centerLng}],17);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+
+  // ✅ CartoDB — pas de blocage Access Blocked
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+    maxZoom:19,
+    subdomains:'abcd'
+  }).addTo(map);
+
   var pts=[],markers=[],polygon=null;
 
   function redraw(p){
@@ -410,18 +417,14 @@ export default function IdentificationsScreen({ navigation }) {
         setShowArbreModal(false);
     };
 
-    // ── SUBMIT — validation simplifiée ───────────────────────
+    // ── SUBMIT ────────────────────────────────────────────────
     const handleSubmit = async () => {
         if (!selectedProducteur) {
             Alert.alert('Champ obligatoire', 'Veuillez sélectionner un producteur.');
             return;
         }
-
-        // Nom automatique si vide
         const nomFinal = nomParcelle.trim() ||
             `Parcelle_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}`;
-
-        // Superficie 0 si pas de tracé
         const superficieFinal = superficie ? parseFloat(superficie) : 0;
 
         setSubmitting(true);
@@ -518,7 +521,6 @@ export default function IdentificationsScreen({ navigation }) {
                     {renderPicker('Producteur *', selectedProducteur, setSelectedProducteur,
                         producteurs.map(p => ({ label: `${p.nom} ${p.prenom}`, value: p.id })), 'label', 'value')}
 
-                    {/* Nom parcelle */}
                     <View style={styles.inputWrapper}>
                         <TextInput
                             style={styles.textInput}
@@ -533,7 +535,6 @@ export default function IdentificationsScreen({ navigation }) {
                     {renderPicker('Statut', statutProducteur, setStatutProducteur,
                         [{ label: 'Nouveau', value: 'Nouveau' }, { label: 'Ancien', value: 'Ancien' }], 'label', 'value')}
 
-                    {/* Superficie + bouton carte */}
                     <View style={styles.superficieBox}>
                         <View style={{ flex: 1 }}>
                             <Text style={styles.superficieLabel}>Superficie (auto via carte)</Text>
@@ -753,7 +754,6 @@ export default function IdentificationsScreen({ navigation }) {
                         <Text style={styles.mapPointsText}>{polygonCoords.length} point(s)</Text>
                     </View>
 
-                    {/* Mode tracé */}
                     {!reviewMode && (
                         <>
                             <TouchableOpacity style={styles.btnCenterMap} onPress={captureUserLocationPoint}>
@@ -780,7 +780,6 @@ export default function IdentificationsScreen({ navigation }) {
                         </>
                     )}
 
-                    {/* Mode révision */}
                     {reviewMode && (
                         <View style={styles.reviewPanel}>
                             <View style={styles.reviewInfo}>
@@ -831,12 +830,10 @@ export default function IdentificationsScreen({ navigation }) {
             ══════════════════════════════════════════════ */}
             <Modal visible={signatureVisible} animationType="slide">
                 <View style={styles.sigContainer}>
-
                     <View style={styles.sigHeader}>
                         <Text style={styles.sigTitle}>Signature du producteur</Text>
                         <Text style={styles.sigSubtitle}>Signez dans le cadre blanc ci-dessous</Text>
                     </View>
-
                     <View style={styles.sigCanvas}>
                         <SignatureScreen
                             ref={refSignature}
@@ -850,7 +847,6 @@ export default function IdentificationsScreen({ navigation }) {
                             `}
                         />
                     </View>
-
                     <View style={styles.sigBtns}>
                         <TouchableOpacity style={styles.sigBtnEffacer} onPress={() => refSignature.current?.clearSignature()}>
                             <MaterialCommunityIcons name="eraser" size={22} color="#fff" />
@@ -861,11 +857,9 @@ export default function IdentificationsScreen({ navigation }) {
                             <Text style={styles.sigBtnText}>Valider</Text>
                         </TouchableOpacity>
                     </View>
-
                     <TouchableOpacity style={styles.sigBtnAnnuler} onPress={() => setSignatureVisible(false)}>
                         <Text style={styles.sigBtnAnnulerText}>Annuler et fermer</Text>
                     </TouchableOpacity>
-
                 </View>
             </Modal>
 

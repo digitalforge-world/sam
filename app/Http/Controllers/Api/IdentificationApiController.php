@@ -77,6 +77,7 @@ class IdentificationApiController extends Controller
             'photo_parcelle' => 'nullable|string',
             'signature_producteur' => 'nullable|string',
             'coordonnees_polygon' => 'nullable|array',
+            'historique' => 'nullable|array',
         ]);
         
         if (empty($validated['numero'])) {

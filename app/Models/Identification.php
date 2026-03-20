@@ -17,7 +17,7 @@ class Identification extends Model
         'recolte', 'stockage', 'commentaire', 'date_preparation_sol', 'date_semis', 'date_sarclage_1',
         'date_sarclage_2', 'date_fertilisation', 'date_recolte', 'arbres', 'niveau_pente',
         'type_culture', 'a_cours_eau', 'maisons_environnantes', 'cultures_proximite', 'rencontre_avec',
-        'photo_parcelle', 'signature_producteur', 'coordonnees_polygon'
+        'photo_parcelle', 'signature_producteur', 'coordonnees_polygon', 'historique'
     ];
 
     protected $casts = [
@@ -39,6 +39,7 @@ class Identification extends Model
         'maisons_environnantes' => 'boolean',
         'arbres' => 'array',
         'coordonnees_polygon' => 'array',
+        'historique' => 'array',
     ];
 
 

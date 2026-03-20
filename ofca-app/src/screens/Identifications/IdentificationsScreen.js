@@ -264,9 +264,16 @@ export default function IdentificationsScreen({ navigation }) {
     const webViewRef = useRef(null);
 
     const [offlineReady, setOfflineReady] = useState(false);
-    const [downloadingTiles, setDownloadingTiles] = useState(false);
     const [downloadProgress, setDownloadProgress] = useState(0);
+    
+    // Etats pour l'Historique
     const [historique, setHistorique] = useState([]);
+    const [showHistModal, setShowHistModal] = useState(false);
+    const [histAnnee, setHistAnnee] = useState('');
+    const [histCrop, setHistCrop] = useState('');
+    const [histCropsLabel, setHistCropsLabel] = useState('');
+    const [histChemicals, setHistChemicals] = useState({ herbicides: false, engrais: false });
+    const [showChemModal, setShowChemModal] = useState(false);
 
     useFocusEffect(useCallback(() => {
         loadDependencies();
@@ -417,6 +424,38 @@ export default function IdentificationsScreen({ navigation }) {
         setShowArbreModal(false);
     };
 
+    const handleAddHistorique = () => {
+        if (!histAnnee.trim() || !histCrop) {
+            Alert.alert('Erreur', 'Veuillez saisir l\'année et la culture.');
+            return;
+        }
+        
+        const chems = [];
+        if (histChemicals.herbicides) chems.push('Herbicides');
+        if (histChemicals.engrais) chems.push('Engrais chimique');
+
+        const newEntry = {
+            id: Date.now().toString(),
+            annee: histAnnee,
+            crop: histCrop,
+            cropLabel: histCropsLabel,
+            chemicals: chems
+        };
+
+        setHistorique(prev => [...prev, newEntry]);
+        
+        // Reset
+        setHistAnnee('');
+        setHistCrop('');
+        setHistCropsLabel('');
+        setHistChemicals({ herbicides: false, engrais: false });
+        setShowHistModal(false);
+    };
+
+    const removeHistorique = (id) => {
+        setHistorique(prev => prev.filter(h => h.id !== id));
+    };
+
     // ── SUBMIT ────────────────────────────────────────────────
     const handleSubmit = async () => {
         if (!selectedProducteur) {
@@ -467,6 +506,7 @@ export default function IdentificationsScreen({ navigation }) {
             photo_parcelle: photoURI,
             signature_producteur: signatureURI,
             coordonnees_polygon: coordonnees,
+            historique: historique,
         };
 
         try {
@@ -561,11 +601,26 @@ export default function IdentificationsScreen({ navigation }) {
                 <View style={styles.sectionBlock}>
                     <View style={styles.sectionRow}>
                         <Text style={styles.sectionBigTitle}>Historique</Text>
-                        <TouchableOpacity style={styles.addIconBtn}>
-                            <MaterialCommunityIcons name="plus-box-outline" size={28} color={COLORS.textSecondary} />
+                        <TouchableOpacity style={styles.addIconBtn} onPress={() => setShowHistModal(true)}>
+                            <MaterialCommunityIcons name="plus-box-outline" size={32} color={COLORS.identification} />
                         </TouchableOpacity>
                     </View>
-                    {historique.length === 0 && <Text style={styles.emptyText}>Aucun historique ajouté</Text>}
+                    
+                    {historique.length === 0 ? (
+                        <Text style={styles.emptyText}>Aucun historique ajouté</Text>
+                    ) : (
+                        historique.map((h) => (
+                            <View key={h.id} style={styles.histItemCard}>
+                                <View style={styles.histItemInfo}>
+                                    <Text style={styles.histItemTitle}>{h.annee} — {h.cropLabel || 'Culture'}</Text>
+                                    <Text style={styles.histItemSub}>{h.chemicals.length > 0 ? h.chemicals.join(', ') : 'Aucun produit chimique'}</Text>
+                                </View>
+                                <TouchableOpacity onPress={() => removeHistorique(h.id)}>
+                                    <MaterialCommunityIcons name="close-circle" size={24} color={COLORS.error} />
+                                </TouchableOpacity>
+                            </View>
+                        ))
+                    )}
                 </View>
 
                 {/* ── Agriculture Bio ─────────────────────── */}
@@ -826,6 +881,102 @@ export default function IdentificationsScreen({ navigation }) {
             </Modal>
 
             {/* ══════════════════════════════════════════════
+                Modal HISTORIQUE
+            ══════════════════════════════════════════════ */}
+            <Modal visible={showHistModal} animationType="slide" transparent>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Ajouter un Historique</Text>
+                            <TouchableOpacity onPress={() => setShowHistModal(false)}>
+                                <MaterialCommunityIcons name="close" size={24} color="#666" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.inputWrapper}>
+                            <TextInput
+                                style={styles.textInput}
+                                value={histAnnee}
+                                onChangeText={setHistAnnee}
+                                placeholder="Année"
+                                placeholderTextColor={COLORS.textDisabled}
+                                keyboardType="numeric"
+                            />
+                        </View>
+
+                        <View style={styles.pickerWrapper}>
+                            <Picker 
+                                selectedValue={histCrop} 
+                                onValueChange={(val, idx) => {
+                                    setHistCrop(val);
+                                    if(idx > 0) setHistCropsLabel(cultures[idx-1].nom);
+                                }} 
+                                style={styles.picker}
+                            >
+                                <Picker.Item label="Crops" value="" color={COLORS.textDisabled} />
+                                {cultures.map((c) => (
+                                    <Picker.Item key={c.id} label={c.nom} value={c.id} />
+                                ))}
+                            </Picker>
+                        </View>
+
+                        <TouchableOpacity 
+                            style={styles.customSelect} 
+                            onPress={() => setShowChemModal(true)}
+                        >
+                            <Text style={[styles.selectText, (histChemicals.herbicides || histChemicals.engrais) ? {} : {color: COLORS.textDisabled}]}>
+                                {(histChemicals.herbicides || histChemicals.engrais) 
+                                    ? `${histChemicals.herbicides ? 'Herbicides' : ''}${histChemicals.herbicides && histChemicals.engrais ? ', ' : ''}${histChemicals.engrais ? 'Engrais chimique' : ''}`
+                                    : 'Chemicals'}
+                            </Text>
+                            <MaterialCommunityIcons name="chevron-down" size={24} color="#666" />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.modalSubmitBtn} onPress={handleAddHistorique}>
+                            <Text style={styles.modalSubmitText}>Ajouter</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Sub-Modal CHEMICALS */}
+            <Modal visible={showChemModal} animationType="fade" transparent>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalSmallContent}>
+                        <Text style={styles.modalSubTitle}>Sélectionnner Chemicals</Text>
+                        
+                        <TouchableOpacity 
+                            style={styles.checkRow} 
+                            onPress={() => setHistChemicals(prev => ({...prev, herbicides: !prev.herbicides}))}
+                        >
+                            <Text style={styles.checkLabel}>Herbicides</Text>
+                            <MaterialCommunityIcons 
+                                name={histChemicals.herbicides ? "checkbox-marked" : "checkbox-blank-outline"} 
+                                size={24} 
+                                color={histChemicals.herbicides ? COLORS.identification : "#666"} 
+                            />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={styles.checkRow} 
+                            onPress={() => setHistChemicals(prev => ({...prev, engrais: !prev.engrais}))}
+                        >
+                            <Text style={styles.checkLabel}>Engrais chimique</Text>
+                            <MaterialCommunityIcons 
+                                name={histChemicals.engrais ? "checkbox-marked" : "checkbox-blank-outline"} 
+                                size={24} 
+                                color={histChemicals.engrais ? COLORS.identification : "#666"} 
+                            />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.okBtn} onPress={() => setShowChemModal(false)}>
+                            <Text style={styles.okBtnText}>OK</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* ══════════════════════════════════════════════
                 Modal SIGNATURE
             ══════════════════════════════════════════════ */}
             <Modal visible={signatureVisible} animationType="slide">
@@ -1026,4 +1177,93 @@ const styles = StyleSheet.create({
     progressBar: { width: '70%', height: 10, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 5, overflow: 'hidden' },
     progressFill: { height: '100%', backgroundColor: '#fff', borderRadius: 5 },
     downloadPct: { color: '#fff', fontWeight: '900', fontSize: 20 },
+
+    // Historique Items
+    histItemCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        marginHorizontal: 16,
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+        ...SHADOWS.small
+    },
+    histItemInfo: { flex: 1 },
+    histItemTitle: { fontSize: 16, fontWeight: '700', color: COLORS.textPrimary },
+    histItemSub: { fontSize: 13, color: COLORS.textSecondary, marginTop: 4 },
+
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        padding: 20
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 24,
+        padding: 24,
+        ...SHADOWS.medium
+    },
+    modalSmallContent: {
+        backgroundColor: '#fff',
+        borderRadius: 24,
+        padding: 24,
+        marginHorizontal: 10,
+        ...SHADOWS.medium
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 24
+    },
+    modalTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textPrimary },
+    modalSubTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 16 },
+    
+    customSelect: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#D0D0D0',
+        height: 56,
+        borderRadius: 10,
+        paddingHorizontal: 14,
+        marginTop: 12,
+        backgroundColor: '#fff'
+    },
+    selectText: { flex: 1, fontSize: 15, color: '#111' },
+    
+    checkRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 14,
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#F0F0F0'
+    },
+    checkLabel: { fontSize: 16, color: COLORS.textPrimary },
+    
+    okBtn: {
+        backgroundColor: COLORS.identification,
+        paddingVertical: 12,
+        paddingHorizontal: 30,
+        borderRadius: 25,
+        alignSelf: 'flex-end',
+        marginTop: 24
+    },
+    okBtnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+    
+    modalSubmitBtn: {
+        backgroundColor: COLORS.identification,
+        height: 56,
+        borderRadius: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 32
+    },
+    modalSubmitText: { color: '#fff', fontSize: 16, fontWeight: '900' },
 });

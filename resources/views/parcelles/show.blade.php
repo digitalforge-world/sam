@@ -30,9 +30,12 @@
                 @elseif($parcelle->approbation_production === 'DECLASSIFIED')<span class="badge-status badge-error">Déclassée</span>
                 @else — @endif
             </span></div>
-            <div class="detail-row"><span class="detail-label">BIO</span><span class="detail-value">{{ $parcelle->bio ? '✅ Oui' : '❌ Non' }}</span></div>
-            <div class="detail-row"><span class="detail-label">Cours d'eau</span><span class="detail-value">{{ $parcelle->a_cours_eau ? '✅' : '❌' }}</span></div>
-            <div class="detail-row"><span class="detail-label">Maisons à prox.</span><span class="detail-value">{{ $parcelle->maisons_proximite ? '✅' : '❌' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Cours d'eau</span><span class="detail-value">{{ $parcelle->a_cours_eau ? '✅ Oui' : '❌ Non' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Maisons à prox.</span><span class="detail-value">{{ $parcelle->maisons_proximite ? '✅ Oui' : '❌ Non' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Route à prox.</span><span class="detail-value">{{ $parcelle->route_proximite ? '✅ Oui' : '❌ Non' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Usine à prox.</span><span class="detail-value">{{ $parcelle->usine_proximite ? '✅ Oui' : '❌ Non' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Dépotoir à prox.</span><span class="detail-value">{{ $parcelle->depotoir_proximite ? '✅ Oui' : '❌ Non' }}</span></div>
+            <div class="detail-row"><span class="detail-label">Ferme d'él. à prox.</span><span class="detail-value">{{ $parcelle->ferme_proximite ? '✅ Oui' : '❌ Non' }}</span></div>
         </div>
     </div>
 

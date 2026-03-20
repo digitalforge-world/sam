@@ -13,6 +13,7 @@ class Parcelle extends Model
         'superficie', 'superficie_bio', 'rendement_bio', 'volume_production',
         'niveau_pente', 'type_culture', 'type_employes', 'approbation_production',
         'bio', 'a_cours_eau', 'maisons_proximite', 'transformation_ferme',
+        'route_proximite', 'usine_proximite', 'depotoir_proximite', 'ferme_proximite',
         'centre', 'contour',
     ];
 
@@ -21,6 +22,10 @@ class Parcelle extends Model
         'a_cours_eau'          => 'boolean',
         'maisons_proximite'    => 'boolean',
         'transformation_ferme' => 'boolean',
+        'route_proximite'      => 'boolean',
+        'usine_proximite'      => 'boolean',
+        'depotoir_proximite'   => 'boolean',
+        'ferme_proximite'      => 'boolean',
         'centre'               => 'array',
         'contour'              => 'array',
     ];

@@ -47,7 +47,14 @@
 
         <hr class="section-divider">
         <div class="section-header"><span class="section-number">4</span><h4 class="section-title">Environnement</h4></div>
-        @foreach([['bio','Certifié BIO','Cette parcelle est certifiée biologique'],['a_cours_eau','Cours d\'eau','Présence de cours d\'eau à proximité'],['maisons_proximite','Maisons à proximité','Habitations proches de la parcelle'],['transformation_ferme','Transformation à la ferme','Transformation réalisée sur place']] as [$name,$label,$help])
+        @foreach([
+            ['a_cours_eau', 'Cours d\'eau', 'Présence de cours d\'eau à proximité'],
+            ['maisons_proximite', 'Maisons à proximité', 'Habitations proches de la parcelle'],
+            ['route_proximite', 'Route à Proximité', 'Proximité d\'une route carrossable'],
+            ['usine_proximite', 'Usine à Proximité', 'Proximité d\'une unité industrielle'],
+            ['depotoir_proximite', 'Dépotoir à Proximité', 'Proximité d\'un lieu de décharge'],
+            ['ferme_proximite', 'Ferme d\'élevage à Proximité', 'Proximité d\'une installation d\'élevage']
+        ] as [$name,$label,$help])
         <div class="toggle-row">
             <div><div class="toggle-label">{{ $label }}</div><div class="toggle-help">{{ $help }}</div></div>
             <label class="toggle-switch"><input type="hidden" name="{{ $name }}" value="0"><input type="checkbox" name="{{ $name }}" value="1" {{ old($name, $parcelle->$name ?? false) ? 'checked' : '' }}><span class="slider"></span></label>

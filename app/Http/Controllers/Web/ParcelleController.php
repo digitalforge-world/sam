@@ -50,7 +50,7 @@ class ParcelleController extends Controller
             'contour_geojson'        => 'nullable|json',
         ]);
 
-        foreach (['bio', 'a_cours_eau', 'maisons_proximite', 'transformation_ferme'] as $field) {
+        foreach (['a_cours_eau', 'maisons_proximite', 'route_proximite', 'usine_proximite', 'depotoir_proximite', 'ferme_proximite'] as $field) {
             $data[$field] = $request->boolean($field);
         }
 
@@ -101,7 +101,7 @@ class ParcelleController extends Controller
             'approbation_production' => 'nullable|in:BIO,OK,DECLASSIFIED',
         ]);
 
-        foreach (['bio', 'a_cours_eau', 'maisons_proximite', 'transformation_ferme'] as $field) {
+        foreach (['a_cours_eau', 'maisons_proximite', 'route_proximite', 'usine_proximite', 'depotoir_proximite', 'ferme_proximite'] as $field) {
             $data[$field] = $request->boolean($field);
         }
 

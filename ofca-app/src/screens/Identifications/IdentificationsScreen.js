@@ -311,7 +311,15 @@ export default function IdentificationsScreen({ navigation }) {
         if (!result.canceled) setPhotoURI(result.assets[0].uri);
     };
 
-    const handleSignature = (sig) => { setSignatureURI(sig); setSignatureVisible(false); };
+    const handleSignature = (sig) => {
+        setSignatureURI(sig);
+        setSignatureVisible(false);
+    };
+
+    const clearSignature = () => {
+        refSignature.current?.clearSignature();
+        setSignatureURI(null);
+    };
 
     // ── Ouvrir la carte ───────────────────────────────────────
     const openMap = async () => {
@@ -654,8 +662,8 @@ export default function IdentificationsScreen({ navigation }) {
                     <View style={styles.signatureHeader}>
                         <Text style={styles.signatureLabel}>Signature du producteur</Text>
                         {signatureURI && (
-                            <TouchableOpacity onPress={() => setSignatureURI(null)}>
-                                <MaterialCommunityIcons name="refresh" size={22} color={COLORS.textDisabled} />
+                            <TouchableOpacity onPress={clearSignature}>
+                                <MaterialCommunityIcons name="delete-sweep-outline" size={24} color={COLORS.error} />
                             </TouchableOpacity>
                         )}
                     </View>
@@ -816,13 +824,43 @@ export default function IdentificationsScreen({ navigation }) {
 
             {/* ── Modal Signature ──────────────────────────── */}
             <Modal visible={signatureVisible} animationType="slide">
-                <View style={{ flex: 1, backgroundColor: '#fff' }}>
+                <View style={{ flex: 1, backgroundColor: '#f9f9f9' }}>
                     <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>Signature du producteur</Text>
+                        <Text style={{ fontSize: 13, color: '#666', marginTop: 4 }}>Signez à l'intérieur du cadre blanc</Text>
                     </View>
-                    <SignatureScreen ref={refSignature} onOK={handleSignature} descriptionText="Signez ici" clearText="Effacer" confirmText="Valider" />
+                    
+                    <View style={{ flex: 1, backgroundColor: '#fff', margin: 10, borderRadius: 12, overflow: 'hidden', elevation: 4 }}>
+                        <SignatureScreen
+                            ref={refSignature}
+                            onOK={handleSignature}
+                            descriptionText="Signature du producteur"
+                            clearText="Effacer"
+                            confirmText="Valider"
+                            webStyle={`
+                                .m-signature-pad { border: none; box-shadow: none; height: 100%; }
+                                .m-signature-pad--body { border: none; }
+                                .m-signature-pad--footer { 
+                                    display: flex; 
+                                    justify-content: space-around; 
+                                    padding: 15px;
+                                    background: #f5f5f5;
+                                }
+                                .button { 
+                                    background-color: #1A1A2E; 
+                                    color: #fff; 
+                                    padding: 10px 25px; 
+                                    border-radius: 8px;
+                                    font-size: 16px;
+                                    font-weight: bold;
+                                }
+                                .button.clear { background-color: #E53935; }
+                            `}
+                        />
+                    </View>
+
                     <TouchableOpacity style={styles.closeSignBtn} onPress={() => setSignatureVisible(false)}>
-                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Fermer</Text>
+                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Annuler</Text>
                     </TouchableOpacity>
                 </View>
             </Modal>

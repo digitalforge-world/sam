@@ -50,9 +50,16 @@ class ProducteurApiController extends Controller
         $user = Auth::user();
         $validated['controleur_id'] = $user->id;
         
-        // Si la zone n'est pas fournie, on prend celle du controleur
+        // Sécurité : Si la zone n'est pas fournie, on tente de prendre celle du controleur
         if (empty($validated['zone_id'])) {
             $validated['zone_id'] = $user->zone_id;
+        }
+
+        // Si après l'assignation automatique la zone est toujours vide, on affiche une erreur claire
+        if (empty($validated['zone_id'])) {
+            return response()->json([
+                'message' => 'Veuillez contacter l\'administrateur : votre compte n\'est affecté à aucune zone de travail.'
+            ], 422);
         }
         
         $producteur = Producteur::create($validated);

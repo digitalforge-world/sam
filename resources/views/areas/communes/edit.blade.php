@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (regionId) {
             try {
-                const response = await fetch(`/api/prefectures?region_id=${regionId}`);
+                const response = await fetch(`{{ url('/api/prefectures') }}?region_id=${regionId}`);
                 const data = await response.json();
                 
                 data.forEach(p => {

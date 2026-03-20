@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (regionId) {
             try {
-                const response = await fetch(`/api/prefectures?region_id=${regionId}`);
+                const response = await fetch(`{{ url('/api/prefectures') }}?region_id=${regionId}`);
                 const data = await response.json();
                 
                 data.forEach(p => {
@@ -64,6 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // Optionnel : Déclencher le chargement si une région est déjà sélectionnée (ex: après un échec de validation)
+    if (regionSelect.value && prefectureSelect.options.length <= 1) {
+        regionSelect.dispatchEvent(new Event('change'));
+    }
 });
 </script>
 @endpush

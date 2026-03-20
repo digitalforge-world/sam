@@ -13,6 +13,11 @@ class ProducteurApiController extends Controller
     {
         $query = Producteur::with(['zone', 'village', 'organisation', 'controleur']);
         
+        // ISOLATION : Un contrôleur ne voit que ses propres producteurs
+        if ($request->user()) {
+            $query->where('controleur_id', $request->user()->id);
+        }
+
         if ($request->has('zone_id')) {
             $query->where('zone_id', $request->zone_id);
         }
@@ -69,11 +74,17 @@ class ProducteurApiController extends Controller
 
     public function show(Producteur $producteur)
     {
+        if ($producteur->controleur_id !== Auth::id()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         return response()->json($producteur->load(['zone', 'village', 'organisation', 'controleur', 'parcelles']));
     }
 
     public function update(Request $request, Producteur $producteur)
     {
+        if ($producteur->controleur_id !== Auth::id()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         $validated = $request->validate([
             'nom' => 'sometimes|required|string|max:100',
             'prenom' => 'sometimes|required|string|max:100',
@@ -95,6 +106,9 @@ class ProducteurApiController extends Controller
 
     public function destroy(Producteur $producteur)
     {
+        if ($producteur->controleur_id !== Auth::id()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         $producteur->delete();
         return response()->json(null, 204);
     }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Parcelle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class ParcelleApiController extends Controller
 {
@@ -13,6 +14,13 @@ class ParcelleApiController extends Controller
     {
         $query = Parcelle::with(['producteur', 'village', 'culture', 'arbres', 'controles']);
         
+        // ISOLATION : Un contrôleur ne voit que les parcelles de SES producteurs
+        if ($request->user()) {
+            $query->whereHas('producteur', function($q) use ($request) {
+                $q->where('controleur_id', $request->user()->id);
+            });
+        }
+
         if ($request->has('producteur_id')) {
             $query->where('producteur_id', $request->producteur_id);
         }
@@ -76,11 +84,18 @@ class ParcelleApiController extends Controller
 
     public function show(Parcelle $parcelle)
     {
+        if ($parcelle->producteur->controleur_id !== Auth::id()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         return response()->json($parcelle->load(['producteur', 'village', 'culture', 'arbres', 'controles']));
     }
 
     public function update(Request $request, Parcelle $parcelle)
     {
+        if ($parcelle->producteur->controleur_id !== Auth::id()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
+
         $validated = $request->validate([
             'village_id'             => 'nullable|exists:villages,id',
             'culture_id'             => 'nullable|exists:cultures,id',
@@ -113,6 +128,9 @@ class ParcelleApiController extends Controller
 
     public function destroy(Parcelle $parcelle)
     {
+        if ($parcelle->producteur->controleur_id !== Auth::id()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         $parcelle->delete();
         return response()->json(null, 204);
     }

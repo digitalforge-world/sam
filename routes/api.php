@@ -8,19 +8,19 @@ use App\Http\Controllers\Api\LocationController;
 Route::name('api.')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 
-    // Public lookups for Locations (Accessible to Web Dashboard)
+    // Public lookups for Locations (Accessible only to Web Dashboard or with Auth)
     Route::get('/regions', [LocationController::class, 'regions']);
     Route::get('/prefectures', [LocationController::class, 'prefectures']);
     Route::get('/communes', [LocationController::class, 'communes']);
     Route::get('/cantons', [LocationController::class, 'cantons']);
-    Route::get('/villages', [LocationController::class, 'villages']);
-    Route::get('/zones', [LocationController::class, 'zones']);
-    Route::get('/cultures', [\App\Http\Controllers\Api\CultureApiController::class, 'index']);
-    Route::get('/parametres', [\App\Http\Controllers\Api\ParametreApiController::class, 'index']);
 
     Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckActiveApi::class])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/user', [AuthController::class, 'user']);
+        Route::get('/villages', [LocationController::class, 'villages']);
+        Route::get('/zones', [LocationController::class, 'zones']);
+        Route::get('/cultures', [\App\Http\Controllers\Api\CultureApiController::class, 'index']);
+        Route::get('/parametres', [\App\Http\Controllers\Api\ParametreApiController::class, 'index']);
 
         // Protected Actions
         Route::post('/villages', [LocationController::class, 'store_village']);

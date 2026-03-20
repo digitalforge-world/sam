@@ -13,6 +13,11 @@ class OrganisationPaysanneApiController extends Controller
     {
         $query = OrganisationPaysanne::with(['zone', 'village', 'controleur']);
         
+        // ISOLATION : Un contrôleur ne voit que ses propres organisations
+        if ($request->user()) {
+            $query->where('controleur_id', $request->user()->id);
+        }
+
         if ($request->has('zone_id')) {
             $query->where('zone_id', $request->zone_id);
         }
@@ -42,11 +47,18 @@ class OrganisationPaysanneApiController extends Controller
 
     public function show(OrganisationPaysanne $organisation)
     {
+        if ($organisation->controleur_id !== Auth::id()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         return response()->json($organisation->load(['zone', 'village', 'controleur', 'producteurs']));
     }
 
     public function update(Request $request, OrganisationPaysanne $organisation)
     {
+        if ($organisation->controleur_id !== Auth::id()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
+
         $validated = $request->validate([
             'nom' => 'sometimes|required|string|max:150',
             'zone_id' => 'sometimes|required|exists:zones,id',
@@ -60,6 +72,9 @@ class OrganisationPaysanneApiController extends Controller
 
     public function destroy(OrganisationPaysanne $organisation)
     {
+        if ($organisation->controleur_id !== Auth::id()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         $organisation->delete();
         return response()->json(null, 204);
     }

@@ -13,6 +13,11 @@ class IdentificationApiController extends Controller
     {
         $query = Identification::with(['producteur', 'controleur']);
         
+        // ISOLATION : Un contrôleur ne voit que ses propres dossiers
+        if ($request->user()) {
+            $query->where('controleur_id', $request->user()->id);
+        }
+
         if ($request->has('producteur_id')) {
             $query->where('producteur_id', $request->producteur_id);
         }
@@ -90,11 +95,18 @@ class IdentificationApiController extends Controller
 
     public function show(Identification $identification)
     {
+        if ($identification->controleur_id !== Auth::id()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         return response()->json($identification->load(['producteur', 'controleur']));
     }
 
     public function update(Request $request, Identification $identification)
     {
+        if ($identification->controleur_id !== Auth::id()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
+
         $validated = $request->validate([
             'numero' => 'sometimes|required|string|max:50',
             'superficie' => 'nullable|numeric|min:0',
@@ -110,6 +122,9 @@ class IdentificationApiController extends Controller
 
     public function destroy(Identification $identification)
     {
+        if ($identification->controleur_id !== Auth::id()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
         $identification->delete();
         return response()->json(null, 204);
     }

@@ -54,6 +54,12 @@ class LocationController extends Controller
         if ($request->has('canton_id')) {
             $query->where('canton_id', $request->canton_id);
         }
+
+        // ISOLATION : Un contrôleur ne voit que ses propres villages
+        if ($request->user()) {
+            $query->where('controleur_id', $request->user()->id);
+        }
+
         return response()->json($query->get());
     }
 
@@ -78,11 +84,12 @@ class LocationController extends Controller
         $request->validate($rules);
 
         $villageData = [
-            'region_id'    => $request->region_id,
-            'prefecture_id' => $request->prefecture_id,
-            'canton_id'    => $request->canton_id,
-            'nom'          => $request->nom,
-            'zone'         => $request->zone ?? null,
+            'region_id'     => $request->region_id,
+            'prefecture_id'  => $request->prefecture_id,
+            'canton_id'     => $request->canton_id,
+            'nom'           => $request->nom,
+            'zone'          => $request->zone ?? null,
+            'controleur_id' => $request->user()?->id, // ISOLATION : On enregistre le créateur
         ];
 
         if ($hasCommunesTable && $request->filled('commune_id')) {

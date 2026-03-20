@@ -296,16 +296,8 @@ export default function IdentificationsScreen({ navigation }) {
         if (!result.canceled) setPhotoURI(result.assets[0].uri);
     };
 
-    // ── Signature ─────────────────────────────────────────────
-    const handleSignature = (sig) => {
-        setSignatureURI(sig);
-        setSignatureVisible(false);
-    };
-
-    const clearSignature = () => {
-        refSignature.current?.clearSignature();
-        setSignatureURI(null);
-    };
+    const handleSignature = (sig) => { setSignatureURI(sig); setSignatureVisible(false); };
+    const clearSignature = () => { refSignature.current?.clearSignature(); setSignatureURI(null); };
 
     // ── Carte ─────────────────────────────────────────────────
     const openMap = async () => {
@@ -347,10 +339,7 @@ export default function IdentificationsScreen({ navigation }) {
     };
 
     const goToReviewMode = () => {
-        if (polygonCoords.length < 3) {
-            Alert.alert('Insuffisant', 'Ajoutez au moins 3 points pour délimiter la parcelle.');
-            return;
-        }
+        if (polygonCoords.length < 3) { Alert.alert('Insuffisant', 'Ajoutez au moins 3 points.'); return; }
         setReviewMode(true);
         webViewRef.current?.injectJavaScript(`
             reviewMode=true; redraw(pts);
@@ -421,11 +410,20 @@ export default function IdentificationsScreen({ navigation }) {
         setShowArbreModal(false);
     };
 
+    // ── SUBMIT — validation simplifiée ───────────────────────
     const handleSubmit = async () => {
-        if (!selectedProducteur || !nomParcelle || !superficie) {
-            Alert.alert('Champs obligatoires', 'Producteur, Nom parcelle et Superficie requis.');
+        if (!selectedProducteur) {
+            Alert.alert('Champ obligatoire', 'Veuillez sélectionner un producteur.');
             return;
         }
+
+        // Nom automatique si vide
+        const nomFinal = nomParcelle.trim() ||
+            `Parcelle_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}`;
+
+        // Superficie 0 si pas de tracé
+        const superficieFinal = superficie ? parseFloat(superficie) : 0;
+
         setSubmitting(true);
         const payload = {
             village_id: selectedVillage || null,
@@ -433,8 +431,8 @@ export default function IdentificationsScreen({ navigation }) {
             producteur_id: selectedProducteur,
             culture_id: selectedCulture || null,
             statut_producteur: statutProducteur,
-            nom_parcelle: nomParcelle,
-            superficie: parseFloat(superficie),
+            nom_parcelle: nomFinal,
+            superficie: superficieFinal,
             participation_formations: participationFormations,
             production_parallele: productionParallele,
             diversite_biologique: diversiteBiologique,
@@ -443,10 +441,13 @@ export default function IdentificationsScreen({ navigation }) {
             rotation_cultures: rotationCultures,
             isolement_parcelles: isolementParcelles,
             preparation_sol: preparationSol,
-            fertilisation, semences,
+            fertilisation,
+            semences,
             gestion_adventices: gestionAdventices,
             gestion_ravageurs: gestionRavageurs,
-            recolte, stockage, commentaire,
+            recolte,
+            stockage,
+            commentaire,
             date_preparation_sol: datePrepSol || null,
             date_semis: dateSemis || null,
             date_sarclage_1: dateSarclage1 || null,
@@ -464,6 +465,7 @@ export default function IdentificationsScreen({ navigation }) {
             signature_producteur: signatureURI,
             coordonnees_polygon: coordonnees,
         };
+
         try {
             await apiClient.post('/identifications', payload);
             Alert.alert('Succès ✅', 'Identification enregistrée !');
@@ -472,7 +474,7 @@ export default function IdentificationsScreen({ navigation }) {
             const saved = await saveParcelle(payload);
             if (saved) {
                 Alert.alert('📴 Sauvegardé localement',
-                    `"${nomParcelle}" sera synchronisé dès que vous aurez internet.`,
+                    `"${nomFinal}" sera synchronisé dès que vous aurez internet.`,
                     [{ text: 'OK', onPress: () => navigation.goBack() }]);
             } else {
                 Alert.alert('Erreur', apiError.response?.data?.message || 'Problème d\'enregistrement.');
@@ -513,15 +515,16 @@ export default function IdentificationsScreen({ navigation }) {
                 <View style={styles.card}>
                     {renderPicker('Village', selectedVillage, setSelectedVillage, villages, 'nom', 'id')}
                     {renderPicker('Organisation paysanne', selectedOrganisation, setSelectedOrganisation, organisations, 'nom', 'id')}
-                    {renderPicker('Producteur', selectedProducteur, setSelectedProducteur,
+                    {renderPicker('Producteur *', selectedProducteur, setSelectedProducteur,
                         producteurs.map(p => ({ label: `${p.nom} ${p.prenom}`, value: p.id })), 'label', 'value')}
-                    
+
+                    {/* Nom parcelle */}
                     <View style={styles.inputWrapper}>
                         <TextInput
                             style={styles.textInput}
                             value={nomParcelle}
                             onChangeText={setNomParcelle}
-                            placeholder="Nom de la parcelle (ex: Champ Sud)"
+                            placeholder="Nom de la parcelle (optionnel)"
                             placeholderTextColor={COLORS.textDisabled}
                         />
                     </View>
@@ -530,10 +533,11 @@ export default function IdentificationsScreen({ navigation }) {
                     {renderPicker('Statut', statutProducteur, setStatutProducteur,
                         [{ label: 'Nouveau', value: 'Nouveau' }, { label: 'Ancien', value: 'Ancien' }], 'label', 'value')}
 
+                    {/* Superficie + bouton carte */}
                     <View style={styles.superficieBox}>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.superficieLabel}>Superficie</Text>
-                            <Text style={styles.superficieValue}>{superficie || '0.0'} ha</Text>
+                            <Text style={styles.superficieLabel}>Superficie (auto via carte)</Text>
+                            <Text style={styles.superficieValue}>{superficie || '0.0000'} ha</Text>
                         </View>
                         <TouchableOpacity style={styles.mapIconBtn} onPress={openMap}>
                             <MaterialCommunityIcons name="map-marker-plus" size={26} color="#fff" />
@@ -781,9 +785,7 @@ export default function IdentificationsScreen({ navigation }) {
                         <View style={styles.reviewPanel}>
                             <View style={styles.reviewInfo}>
                                 <MaterialCommunityIcons name="information-outline" size={16} color="#666" />
-                                <Text style={styles.reviewInfoText}>
-                                    Appuyez sur un point pour le supprimer ou le déplacer
-                                </Text>
+                                <Text style={styles.reviewInfoText}>Appuyez sur un point pour le supprimer ou le déplacer</Text>
                             </View>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pointsList}>
                                 {polygonCoords.map((pt, i) => (
@@ -825,18 +827,16 @@ export default function IdentificationsScreen({ navigation }) {
             </Modal>
 
             {/* ══════════════════════════════════════════════
-                Modal SIGNATURE — boutons toujours visibles
+                Modal SIGNATURE
             ══════════════════════════════════════════════ */}
             <Modal visible={signatureVisible} animationType="slide">
                 <View style={styles.sigContainer}>
 
-                    {/* Header */}
                     <View style={styles.sigHeader}>
                         <Text style={styles.sigTitle}>Signature du producteur</Text>
                         <Text style={styles.sigSubtitle}>Signez dans le cadre blanc ci-dessous</Text>
                     </View>
 
-                    {/* Zone de signature — hauteur FIXE */}
                     <View style={styles.sigCanvas}>
                         <SignatureScreen
                             ref={refSignature}
@@ -851,29 +851,18 @@ export default function IdentificationsScreen({ navigation }) {
                         />
                     </View>
 
-                    {/* Boutons natifs — toujours visibles en bas */}
                     <View style={styles.sigBtns}>
-                        <TouchableOpacity
-                            style={styles.sigBtnEffacer}
-                            onPress={() => refSignature.current?.clearSignature()}
-                        >
+                        <TouchableOpacity style={styles.sigBtnEffacer} onPress={() => refSignature.current?.clearSignature()}>
                             <MaterialCommunityIcons name="eraser" size={22} color="#fff" />
                             <Text style={styles.sigBtnText}>Effacer</Text>
                         </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.sigBtnValider}
-                            onPress={() => refSignature.current?.readSignature()}
-                        >
+                        <TouchableOpacity style={styles.sigBtnValider} onPress={() => refSignature.current?.readSignature()}>
                             <MaterialCommunityIcons name="check-circle" size={22} color="#fff" />
                             <Text style={styles.sigBtnText}>Valider</Text>
                         </TouchableOpacity>
                     </View>
 
-                    <TouchableOpacity
-                        style={styles.sigBtnAnnuler}
-                        onPress={() => setSignatureVisible(false)}
-                    >
+                    <TouchableOpacity style={styles.sigBtnAnnuler} onPress={() => setSignatureVisible(false)}>
                         <Text style={styles.sigBtnAnnulerText}>Annuler et fermer</Text>
                     </TouchableOpacity>
 
@@ -887,21 +876,10 @@ export default function IdentificationsScreen({ navigation }) {
                 <View style={styles.arbreModalOverlay}>
                     <View style={styles.arbreModalBox}>
                         <Text style={styles.arbreModalTitle}>Ajouter un arbre</Text>
-                        <TextInput
-                            style={styles.arbreInput}
-                            value={currentArbreNom}
-                            onChangeText={setCurrentArbreNom}
-                            placeholder="Nom de l'arbre"
-                            placeholderTextColor={COLORS.textDisabled}
-                        />
-                        <TextInput
-                            style={styles.arbreInput}
-                            value={currentArbreNombre}
-                            onChangeText={setCurrentArbreNombre}
-                            placeholder="Nombre"
-                            keyboardType="numeric"
-                            placeholderTextColor={COLORS.textDisabled}
-                        />
+                        <TextInput style={styles.arbreInput} value={currentArbreNom} onChangeText={setCurrentArbreNom}
+                            placeholder="Nom de l'arbre" placeholderTextColor={COLORS.textDisabled} />
+                        <TextInput style={styles.arbreInput} value={currentArbreNombre} onChangeText={setCurrentArbreNombre}
+                            placeholder="Nombre" keyboardType="numeric" placeholderTextColor={COLORS.textDisabled} />
                         <View style={styles.arbreModalBtns}>
                             <TouchableOpacity style={styles.arbreBtnCancel} onPress={() => setShowArbreModal(false)}>
                                 <Text style={styles.arbreBtnText}>Annuler</Text>
@@ -937,11 +915,12 @@ const styles = StyleSheet.create({
     scrollArea: { flex: 1 },
 
     card: { backgroundColor: '#fff', marginBottom: 8, paddingVertical: 4 },
-    inputWrapper: { paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
-    textInput: { height: 40, fontSize: 16, color: '#111', fontWeight: '500' },
     togglesCard: { backgroundColor: '#fff', marginBottom: 8 },
     calendarCard: { backgroundColor: '#fff', marginBottom: 8, paddingHorizontal: 16, paddingVertical: 8 },
     commentCard: { backgroundColor: '#fff', marginBottom: 8, paddingHorizontal: 16, paddingVertical: 8 },
+
+    inputWrapper: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
+    textInput: { height: 44, fontSize: 16, color: '#111' },
 
     pickerWrapper: { borderBottomWidth: 1, borderBottomColor: '#E0E0E0', backgroundColor: '#fff', marginBottom: 2 },
     picker: { height: 56, color: COLORS.textPrimary },
@@ -993,7 +972,7 @@ const styles = StyleSheet.create({
 
     offlinePill: { position: 'absolute', bottom: 100, right: 16, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', elevation: 6 },
 
-    // ── Map ───────────────────────────────────────────────────
+    // Map
     modalFull: { flex: 1 },
     map: { flex: 1 },
     mapHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 50, paddingBottom: 12, backgroundColor: '#fff', elevation: 3 },
@@ -1024,7 +1003,7 @@ const styles = StyleSheet.create({
     reviewBtnValider: { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1565C0', borderRadius: 14, padding: 14, gap: 6 },
     reviewBtnValiderText: { fontWeight: '800', color: '#fff', fontSize: 15 },
 
-    // ── Signature Modal ───────────────────────────────────────
+    // Signature Modal
     sigContainer: { flex: 1, backgroundColor: '#F5F5F5' },
     sigHeader: { paddingTop: 55, paddingBottom: 16, paddingHorizontal: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#E0E0E0', alignItems: 'center' },
     sigTitle: { fontSize: 18, fontWeight: '800', color: '#111' },
@@ -1037,7 +1016,7 @@ const styles = StyleSheet.create({
     sigBtnAnnuler: { padding: 14, alignItems: 'center' },
     sigBtnAnnulerText: { color: '#E53935', fontWeight: '700', fontSize: 15 },
 
-    // ── Arbre Modal ───────────────────────────────────────────
+    // Arbre Modal
     arbreModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     arbreModalBox: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24 },
     arbreModalTitle: { fontSize: 18, fontWeight: '800', marginBottom: 16 },
@@ -1047,7 +1026,7 @@ const styles = StyleSheet.create({
     arbreBtnAdd: { flex: 1, backgroundColor: COLORS.identification, borderRadius: 10, padding: 14, alignItems: 'center' },
     arbreBtnText: { fontWeight: 'bold', fontSize: 15 },
 
-    // ── Download Overlay ──────────────────────────────────────
+    // Download
     downloadOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center', gap: 16 },
     downloadText: { color: '#fff', fontWeight: '800', fontSize: 16 },
     progressBar: { width: '70%', height: 10, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 5, overflow: 'hidden' },

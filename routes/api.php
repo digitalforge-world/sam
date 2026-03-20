@@ -18,7 +18,7 @@ Route::name('api.')->group(function () {
     Route::get('/cultures', [\App\Http\Controllers\Api\CultureApiController::class, 'index']);
     Route::get('/parametres', [\App\Http\Controllers\Api\ParametreApiController::class, 'index']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckActiveApi::class])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/user', [AuthController::class, 'user']);
 

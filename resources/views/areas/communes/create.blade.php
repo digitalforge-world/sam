@@ -44,24 +44,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     regionSelect.addEventListener('change', async (e) => {
         const regionId = e.target.value;
-        prefectureSelect.innerHTML = '<option value="">— Sélectionner —</option>';
+        prefectureSelect.innerHTML = '<option value="">— Chargement... —</option>';
         prefectureSelect.disabled = true;
 
         if (regionId) {
             try {
-                const response = await fetch(`/api/prefectures?region_id=${regionId}`);
+                const response = await fetch(`{{ url('/api/prefectures') }}?region_id=${regionId}`);
                 const data = await response.json();
                 
-                data.forEach(p => {
-                    const option = document.createElement('option');
-                    option.value = p.id;
-                    option.textContent = p.nom;
-                    prefectureSelect.appendChild(option);
-                });
-                prefectureSelect.disabled = false;
+                prefectureSelect.innerHTML = '<option value="">— Sélectionner —</option>';
+                if (data.length > 0) {
+                    data.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.id;
+                        option.textContent = p.nom;
+                        // Conserver la sélection si on est en mode édition ou retour d'erreur
+                        if (p.id == "{{ old('prefecture_id', $commune->prefecture_id ?? '') }}") {
+                            option.selected = true;
+                        }
+                        prefectureSelect.appendChild(option);
+                    });
+                    prefectureSelect.disabled = false;
+                } else {
+                    prefectureSelect.innerHTML = '<option value="">— Aucune préfecture dans cette région —</option>';
+                }
             } catch (error) {
                 console.error('Erreur lors du chargement des préfectures:', error);
+                prefectureSelect.innerHTML = '<option value="">— Erreur de chargement —</option>';
             }
+        } else {
+            prefectureSelect.innerHTML = '<option value="">— Sélectionner une région d\'abord —</option>';
         }
     });
 

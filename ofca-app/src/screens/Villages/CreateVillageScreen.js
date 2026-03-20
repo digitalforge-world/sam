@@ -19,12 +19,14 @@ import { COLORS, RADIUS, SHADOWS, SPACING } from '../../theme';
 export default function CreateVillageScreen({ navigation }) {
     const [regions, setRegions] = useState([]);
     const [prefectures, setPrefectures] = useState([]);
+    const [communes, setCommunes] = useState([]);
     const [cantons, setCantons] = useState([]);
 
     const [nom, setNom] = useState('');
     const [zone, setZone] = useState('');
     const [selectedRegion, setSelectedRegion] = useState('');
     const [selectedPrefecture, setSelectedPrefecture] = useState('');
+    const [selectedCommune, setSelectedCommune] = useState('');
     const [selectedCanton, setSelectedCanton] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
@@ -34,21 +36,28 @@ export default function CreateVillageScreen({ navigation }) {
 
     const loadLocations = async () => {
         try {
-            const [regRes, prefRes, cantRes] = await Promise.all([
+            const [regRes, prefRes, commRes, cantRes] = await Promise.all([
                 apiClient.get('/regions'),
                 apiClient.get('/prefectures'),
+                apiClient.get('/communes'),
                 apiClient.get('/cantons'),
             ]);
             setRegions(regRes.data);
             setPrefectures(prefRes.data);
+            setCommunes(commRes.data);
             setCantons(cantRes.data);
         } catch (e) {
             Alert.alert('Erreur', 'Impossible de charger les localisations');
         }
     };
 
+    // Filtrer les communes selon la préfecture sélectionnée
+    const filteredCommunes = selectedPrefecture
+        ? communes.filter(c => c.prefecture_id?.toString() === selectedPrefecture)
+        : communes;
+
     const handleSubmit = async () => {
-        if (!nom.trim() || !selectedRegion || !selectedPrefecture || !selectedCanton) {
+        if (!nom.trim() || !selectedRegion || !selectedPrefecture || !selectedCommune || !selectedCanton) {
             Alert.alert('Attention', 'Veuillez remplir tous les champs obligatoires.');
             return;
         }
@@ -60,12 +69,20 @@ export default function CreateVillageScreen({ navigation }) {
                 zone: zone.trim(),
                 region_id: selectedRegion,
                 prefecture_id: selectedPrefecture,
+                commune_id: selectedCommune,
                 canton_id: selectedCanton,
             });
             Alert.alert('Succès ✅', 'Village créé avec succès !');
             navigation.goBack();
         } catch (error) {
-            Alert.alert('Erreur', 'Impossible de créer le village.');
+            // Récupère le vrai message d'erreur du serveur (validation 422, etc.)
+            const serverMsg = error?.response?.data?.message
+                || (error?.response?.data?.errors
+                    ? Object.values(error.response.data.errors).flat().join('\n')
+                    : null)
+                || error?.message
+                || 'Impossible de créer le village.';
+            Alert.alert('Erreur', serverMsg);
         } finally {
             setSubmitting(false);
         }
@@ -111,8 +128,25 @@ export default function CreateVillageScreen({ navigation }) {
                     <View style={styles.formGroup}>
                         <Text style={styles.label}>Préfecture *</Text>
                         <View style={styles.pickerWrapper}>
-                            <Picker selectedValue={selectedPrefecture} onValueChange={setSelectedPrefecture}>
+                            <Picker
+                                selectedValue={selectedPrefecture}
+                                onValueChange={(val) => {
+                                    setSelectedPrefecture(val);
+                                    setSelectedCommune(''); // reset commune si préfecture change
+                                }}
+                            >
+                                <Picker.Item label="-- Choisir une préfecture --" value="" />
                                 {prefectures.map(p => <Picker.Item key={p.id} label={p.nom} value={p.id.toString()} />)}
+                            </Picker>
+                        </View>
+                    </View>
+
+                    <View style={styles.formGroup}>
+                        <Text style={styles.label}>Commune *</Text>
+                        <View style={styles.pickerWrapper}>
+                            <Picker selectedValue={selectedCommune} onValueChange={setSelectedCommune}>
+                                <Picker.Item label="-- Choisir une commune --" value="" />
+                                {filteredCommunes.map(c => <Picker.Item key={c.id} label={c.nom} value={c.id.toString()} />)}
                             </Picker>
                         </View>
                     </View>

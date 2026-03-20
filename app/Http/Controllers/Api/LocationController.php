@@ -62,18 +62,20 @@ class LocationController extends Controller
     public function store_village(Request $request)
     {
         $request->validate([
-            'region_id' => 'required|exists:regions,id',
+            'region_id'    => 'required|exists:regions,id',
             'prefecture_id' => 'required|exists:prefectures,id',
-            'commune_id' => 'required|exists:communes,id',
-            'canton_id' => 'required|exists:cantons,id',
-            'nom' => 'required|string|max:255',
+            'commune_id'   => 'required|exists:communes,id',
+            'canton_id'    => 'required|exists:cantons,id',
+            'nom'          => 'required|string|max:255',
         ]);
 
         $village = Village::create([
-            'region_id' => $request->region_id,
+            'region_id'    => $request->region_id,
             'prefecture_id' => $request->prefecture_id,
-            'canton_id' => $request->canton_id,
-            'nom' => $request->nom,
+            'commune_id'   => $request->commune_id,
+            'canton_id'    => $request->canton_id,
+            'nom'          => $request->nom,
+            'zone'         => $request->zone ?? null,
         ]);
 
         return response()->json([

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Village extends Model
 {
-    protected $fillable = ['region_id', 'prefecture_id', 'canton_id', 'controleur_id', 'nom', 'zone'];
+    protected $fillable = ['region_id', 'prefecture_id', 'commune_id', 'canton_id', 'controleur_id', 'nom', 'zone'];
 
     protected static function booted(): void
     {
@@ -20,6 +20,7 @@ class Village extends Model
 
     public function region(): BelongsTo     { return $this->belongsTo(Region::class); }
     public function prefecture(): BelongsTo { return $this->belongsTo(Prefecture::class); }
+    public function commune(): BelongsTo    { return $this->belongsTo(Commune::class); }
     public function canton(): BelongsTo     { return $this->belongsTo(Canton::class); }
     public function controleur(): BelongsTo { return $this->belongsTo(User::class, 'controleur_id'); }
     public function producteurs(): HasMany  { return $this->hasMany(Producteur::class); }

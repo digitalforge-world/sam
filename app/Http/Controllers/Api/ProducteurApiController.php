@@ -36,18 +36,24 @@ class ProducteurApiController extends Controller
         $validated = $request->validate([
             'nom' => 'required|string|max:100',
             'prenom' => 'required|string|max:100',
-            'sexe' => 'required|string|in:Masculin,Féminin',
+            'sexe' => 'sometimes|nullable|string|in:Masculin,Féminin',
             'telephone' => 'nullable|string|max:20',
             'type_carte' => 'nullable|string|max:100',
-            'statut' => 'required|string|in:Nouveau,Ancien',
+            'statut' => 'sometimes|nullable|string|in:Nouveau,Ancien',
             'annee_adhesion' => 'required_if:statut,Ancien|nullable|integer',
-            'zone_id' => 'required|exists:zones,id',
+            'zone_id' => 'nullable|exists:zones,id',
             'village_id' => 'required|exists:villages,id',
             'organisation_paysanne_id' => 'nullable|exists:organisation_paysannes,id',
             'est_actif' => 'boolean'
         ]);
 
-        $validated['controleur_id'] = Auth::id();
+        $user = Auth::user();
+        $validated['controleur_id'] = $user->id;
+        
+        // Si la zone n'est pas fournie, on prend celle du controleur
+        if (empty($validated['zone_id'])) {
+            $validated['zone_id'] = $user->zone_id;
+        }
         
         $producteur = Producteur::create($validated);
         
@@ -64,10 +70,10 @@ class ProducteurApiController extends Controller
         $validated = $request->validate([
             'nom' => 'sometimes|required|string|max:100',
             'prenom' => 'sometimes|required|string|max:100',
-            'sexe' => 'sometimes|required|string|in:Masculin,Féminin',
+            'sexe' => 'sometimes|nullable|string|in:Masculin,Féminin',
             'telephone' => 'nullable|string|max:20',
             'type_carte' => 'nullable|string|max:100',
-            'statut' => 'sometimes|required|string|in:Nouveau,Ancien',
+            'statut' => 'sometimes|nullable|string|in:Nouveau,Ancien',
             'annee_adhesion' => 'required_if:statut,Ancien|nullable|integer',
             'zone_id' => 'sometimes|required|exists:zones,id',
             'village_id' => 'sometimes|required|exists:villages,id',

@@ -142,6 +142,7 @@ export default function ProducteursScreen({ navigation }) {
             {/* Type de carte */}
             {renderPicker('Type de carte', typeCarte, setTypeCarte, [
                 { label: "Carte d'identité", value: 'Carte d\'identité' },
+                { label: "Carte d'électeur", value: "Carte d'électeur" },
                 { label: 'Passeport', value: 'Passeport' },
                 { label: 'Permis de conduire', value: 'Permis de conduire' },
             ], 'label', 'value')}

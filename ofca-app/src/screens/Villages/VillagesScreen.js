@@ -1,27 +1,30 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import NetInfo from '@react-native-community/netinfo';
 import apiClient from '../../api/client';
-import { COLORS, SHADOWS, SPACING, RADIUS } from '../../theme';
+import { COLORS, SPACING, RADIUS } from '../../theme';
 import LoadingScreen from '../../components/LoadingScreen';
 import EmptyState from '../../components/EmptyState';
 
 export default function VillagesScreen({ navigation }) {
     const [villages, setVillages] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isOffline, setIsOffline] = useState(false);
+    const [fromCache, setFromCache] = useState(false);
 
-    useFocusEffect(
-        useCallback(() => {
-            loadVillages();
-        }, [])
-    );
+    useFocusEffect(useCallback(() => { loadVillages(); }, []));
 
     const loadVillages = async () => {
+        setLoading(true);
         try {
+            const state = await NetInfo.fetch();
+            setIsOffline(!state.isConnected);
+
             const response = await apiClient.get('/villages');
-            // Gérer le format de réponse (data: [] ou [])
             setVillages(response.data.data ?? response.data);
+            setFromCache(!!response.fromCache);
         } catch (error) {
             console.log('Error loading villages:', error);
         } finally {
@@ -29,11 +32,8 @@ export default function VillagesScreen({ navigation }) {
         }
     };
 
-    const renderVillage = ({ item, index }) => (
-        <TouchableOpacity 
-            style={styles.card}
-            activeOpacity={0.7}
-        >
+    const renderVillage = ({ item }) => (
+        <TouchableOpacity style={styles.card} activeOpacity={0.7}>
             <View style={[styles.iconCircle, { backgroundColor: COLORS.villageSurface }]}>
                 <MaterialCommunityIcons name="home-city-outline" size={24} color={COLORS.village} />
             </View>
@@ -59,11 +59,26 @@ export default function VillagesScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
+
+            {/* ── Bandeaux offline ──────────────────────── */}
+            {isOffline && (
+                <View style={styles.offlineBanner}>
+                    <MaterialCommunityIcons name="wifi-off" size={16} color="#fff" />
+                    <Text style={styles.offlineBannerText}>Mode hors ligne — données en cache</Text>
+                </View>
+            )}
+            {fromCache && !isOffline && (
+                <View style={styles.cacheBanner}>
+                    <MaterialCommunityIcons name="database-clock" size={14} color="#fff" />
+                    <Text style={styles.cacheBannerText}>Données chargées depuis le cache local</Text>
+                </View>
+            )}
+
             {/* Sub-header */}
             <View style={styles.subHeader}>
                 <Text style={styles.subHeaderCount}>{villages.length} village(s) enregistré(s)</Text>
-                <TouchableOpacity 
-                    style={styles.addButton} 
+                <TouchableOpacity
+                    style={styles.addButton}
                     onPress={() => navigation.navigate('CreateVillage')}
                     activeOpacity={0.8}
                 >
@@ -79,9 +94,9 @@ export default function VillagesScreen({ navigation }) {
                 contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={
-                    <EmptyState 
-                        icon="🏘️" 
-                        title="Aucun village trouvé" 
+                    <EmptyState
+                        icon="🏘️"
+                        title="Aucun village trouvé"
                         subtitle="Enregistrez le premier village de votre zone d'intervention."
                     />
                 }
@@ -92,57 +107,50 @@ export default function VillagesScreen({ navigation }) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.background },
+
+    // Bandeaux
+    offlineBanner: {
+        flexDirection: 'row', alignItems: 'center', gap: 8,
+        backgroundColor: '#F57F17', padding: 10, paddingHorizontal: 16,
+    },
+    offlineBannerText: { color: '#fff', fontWeight: '700', fontSize: 13, flex: 1 },
+    cacheBanner: {
+        flexDirection: 'row', alignItems: 'center', gap: 8,
+        backgroundColor: '#1565C0', padding: 8, paddingHorizontal: 16,
+    },
+    cacheBannerText: { color: '#fff', fontSize: 12, flex: 1 },
+
     subHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: SPACING.lg,
-        paddingVertical: SPACING.md,
-        backgroundColor: COLORS.white,
-        ...SHADOWS.small,
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+        paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md,
+        backgroundColor: COLORS.white, elevation: 2,
     },
     subHeaderCount: { fontSize: 13, color: COLORS.textTertiary, fontWeight: '600' },
-    addButton: { 
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: COLORS.village, 
-        paddingHorizontal: SPACING.lg, 
-        paddingVertical: 8,
-        borderRadius: RADIUS.full,
-        gap: 4,
-        ...SHADOWS.colored(COLORS.village),
+    addButton: {
+        flexDirection: 'row', alignItems: 'center',
+        backgroundColor: COLORS.village,
+        paddingHorizontal: SPACING.lg, paddingVertical: 8,
+        borderRadius: RADIUS.full, gap: 4, elevation: 3,
     },
     addButtonText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+
     list: { padding: SPACING.md, paddingBottom: 40 },
-    card: { 
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: COLORS.white, 
-        padding: SPACING.md, 
-        borderRadius: RADIUS.lg, 
-        marginBottom: SPACING.sm, 
-        ...SHADOWS.small,
+    card: {
+        flexDirection: 'row', alignItems: 'center',
+        backgroundColor: COLORS.white, padding: SPACING.md,
+        borderRadius: RADIUS.lg, marginBottom: SPACING.sm, elevation: 2,
     },
     iconCircle: {
-        width: 46,
-        height: 46,
-        borderRadius: 23,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: SPACING.md,
+        width: 46, height: 46, borderRadius: 23,
+        justifyContent: 'center', alignItems: 'center', marginRight: SPACING.md,
     },
     cardContent: { flex: 1 },
     cardTitle: { fontWeight: '800', fontSize: 16, color: COLORS.textPrimary, marginBottom: 2 },
     metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     cardSubTitle: { fontSize: 12, color: COLORS.textTertiary },
     zoneBadge: {
-        alignSelf: 'flex-start',
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        borderRadius: 4,
-        paddingHorizontal: 6,
-        paddingVertical: 1,
-        marginTop: 6,
+        alignSelf: 'flex-start', borderWidth: 1, borderColor: COLORS.border,
+        borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1, marginTop: 6,
     },
-    zoneBadgeText: { fontSize: 10, color: COLORS.textTertiary, fontWeight: '600' }
+    zoneBadgeText: { fontSize: 10, color: COLORS.textTertiary, fontWeight: '600' },
 });

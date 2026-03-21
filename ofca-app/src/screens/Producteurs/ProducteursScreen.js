@@ -5,18 +5,20 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useFocusEffect } from '@react-navigation/native';
+import NetInfo from '@react-native-community/netinfo';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import apiClient from '../../api/client';
 import { COLORS } from '../../theme';
 import LoadingScreen from '../../components/LoadingScreen';
 
 export default function ProducteursScreen({ navigation }) {
 
-    // Listes
     const [villages, setVillages] = useState([]);
     const [organisations, setOrganisations] = useState([]);
     const [loadingData, setLoadingData] = useState(true);
+    const [isOffline, setIsOffline] = useState(false);
+    const [fromCache, setFromCache] = useState(false);
 
-    // Champs formulaire
     const [selectedVillage, setSelectedVillage] = useState('');
     const [selectedOrganisation, setSelectedOrganisation] = useState('');
     const [nomPrenoms, setNomPrenoms] = useState('');
@@ -32,12 +34,17 @@ export default function ProducteursScreen({ navigation }) {
     const loadAll = async () => {
         setLoadingData(true);
         try {
+            const state = await NetInfo.fetch();
+            setIsOffline(!state.isConnected);
+
             const [villRes, orgRes] = await Promise.all([
                 apiClient.get('/villages'),
                 apiClient.get('/organisations'),
             ]);
+
             setVillages(villRes.data.data ?? villRes.data);
             setOrganisations(orgRes.data.data ?? orgRes.data);
+            setFromCache(!!(villRes.fromCache || orgRes.fromCache));
         } catch {
             Alert.alert('Erreur', 'Impossible de charger les données.');
         } finally {
@@ -46,7 +53,6 @@ export default function ProducteursScreen({ navigation }) {
     };
 
     const handleSubmit = async () => {
-        // Séparer nom et prénom depuis "Nom et Prénoms"
         const parts = nomPrenoms.trim().split(' ');
         const nom = parts[0] ?? '';
         const prenom = parts.slice(1).join(' ') ?? '';
@@ -62,7 +68,7 @@ export default function ProducteursScreen({ navigation }) {
 
         setSubmitting(true);
         try {
-            await apiClient.post('/producteurs', {
+            const res = await apiClient.post('/producteurs', {
                 nom,
                 prenom,
                 sexe: sexe || null,
@@ -73,8 +79,18 @@ export default function ProducteursScreen({ navigation }) {
                 village_id: selectedVillage,
                 organisation_paysanne_id: selectedOrganisation || null,
             });
-            Alert.alert('Succès ✅', 'Producteur enregistré !');
-            navigation.goBack();
+
+            if (res?.data?.offline || res?.data?.queued) {
+                Alert.alert(
+                    '📴 Sauvegardé hors ligne',
+                    'Le producteur sera envoyé au serveur dès que vous aurez internet.',
+                    [{ text: 'OK', onPress: () => navigation.goBack() }]
+                );
+            } else {
+                Alert.alert('Succès ✅', 'Producteur enregistré !', [
+                    { text: 'OK', onPress: () => navigation.goBack() }
+                ]);
+            }
         } catch (e) {
             Alert.alert('Erreur', e.response?.data?.message || 'Problème d\'enregistrement.');
         } finally {
@@ -103,6 +119,20 @@ export default function ProducteursScreen({ navigation }) {
 
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+
+            {/* ── Bandeau offline ──────────────────────── */}
+            {isOffline && (
+                <View style={styles.offlineBanner}>
+                    <MaterialCommunityIcons name="wifi-off" size={16} color="#fff" />
+                    <Text style={styles.offlineBannerText}>Mode hors ligne — formulaire disponible</Text>
+                </View>
+            )}
+            {fromCache && !isOffline && (
+                <View style={styles.cacheBanner}>
+                    <MaterialCommunityIcons name="database-clock" size={14} color="#fff" />
+                    <Text style={styles.cacheBannerText}>Données chargées depuis le cache local</Text>
+                </View>
+            )}
 
             {/* Village */}
             {renderPicker('Village', selectedVillage, setSelectedVillage, villages)}
@@ -141,7 +171,7 @@ export default function ProducteursScreen({ navigation }) {
 
             {/* Type de carte */}
             {renderPicker('Type de carte', typeCarte, setTypeCarte, [
-                { label: "Carte d'identité", value: 'Carte d\'identité' },
+                { label: "Carte d'identité", value: "Carte d'identité" },
                 { label: "Carte d'électeur", value: "Carte d'électeur" },
                 { label: 'Passeport', value: 'Passeport' },
                 { label: 'Permis de conduire', value: 'Permis de conduire' },
@@ -153,13 +183,13 @@ export default function ProducteursScreen({ navigation }) {
                 { label: 'Ancien', value: 'Ancien' },
             ], 'label', 'value')}
 
-            {/* Année (toujours visible comme dans le screenshot) */}
+            {/* Année */}
             <View style={styles.inputBox}>
                 <TextInput
                     style={styles.input}
                     value={annee}
                     onChangeText={setAnnee}
-                    placeholder="Anneé"
+                    placeholder="Année d'adhésion"
                     placeholderTextColor="#AAA"
                     keyboardType="numeric"
                     maxLength={4}
@@ -174,7 +204,9 @@ export default function ProducteursScreen({ navigation }) {
             >
                 {submitting
                     ? <ActivityIndicator color="#fff" />
-                    : <Text style={styles.submitBtnText}>Soumettre</Text>
+                    : <Text style={styles.submitBtnText}>
+                        {isOffline ? '📴 Sauvegarder hors ligne' : 'Soumettre'}
+                    </Text>
                 }
             </TouchableOpacity>
 
@@ -186,46 +218,38 @@ export default function ProducteursScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
 
+    // Bandeaux
+    offlineBanner: {
+        flexDirection: 'row', alignItems: 'center', gap: 8,
+        backgroundColor: '#F57F17', padding: 10, paddingHorizontal: 16,
+    },
+    offlineBannerText: { color: '#fff', fontWeight: '700', fontSize: 13, flex: 1 },
+    cacheBanner: {
+        flexDirection: 'row', alignItems: 'center', gap: 8,
+        backgroundColor: '#1565C0', padding: 8, paddingHorizontal: 16,
+    },
+    cacheBannerText: { color: '#fff', fontSize: 12, flex: 1 },
+
     // Champs texte
     inputBox: {
-        borderWidth: 1,
-        borderColor: '#D0D0D0',
-        borderRadius: 10,
-        marginHorizontal: 16,
-        marginTop: 12,
-        paddingHorizontal: 14,
-        backgroundColor: '#fff',
-        justifyContent: 'center',
+        borderWidth: 1, borderColor: '#D0D0D0', borderRadius: 10,
+        marginHorizontal: 16, marginTop: 12, paddingHorizontal: 14,
+        backgroundColor: '#fff', justifyContent: 'center',
     },
-    input: {
-        height: 56,
-        fontSize: 15,
-        color: '#111',
-    },
+    input: { height: 56, fontSize: 15, color: '#111' },
 
     // Pickers
     pickerBox: {
-        borderWidth: 1,
-        borderColor: '#D0D0D0',
-        borderRadius: 10,
-        marginHorizontal: 16,
-        marginTop: 12,
-        backgroundColor: '#fff',
-        overflow: 'hidden',
+        borderWidth: 1, borderColor: '#D0D0D0', borderRadius: 10,
+        marginHorizontal: 16, marginTop: 12,
+        backgroundColor: '#fff', overflow: 'hidden',
     },
-    picker: {
-        height: 56,
-        color: '#333',
-    },
+    picker: { height: 56, color: '#333' },
 
     // Bouton
     submitBtn: {
-        backgroundColor: '#1A1A2E',
-        marginHorizontal: 16,
-        marginTop: 32,
-        padding: 18,
-        borderRadius: 40,
-        alignItems: 'center',
+        backgroundColor: '#1A1A2E', marginHorizontal: 16, marginTop: 32,
+        padding: 18, borderRadius: 40, alignItems: 'center',
     },
     submitBtnText: { color: '#fff', fontWeight: '900', fontSize: 16 },
     btnDisabled: { opacity: 0.6 },

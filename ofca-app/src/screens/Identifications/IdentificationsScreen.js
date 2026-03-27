@@ -12,7 +12,7 @@ import { WebView } from 'react-native-webview';
 import SignatureScreen from 'react-native-signature-canvas';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import apiClient from '../../api/client';
+import apiClient, { addToQueue } from '../../api/client';
 import { COLORS, RADIUS, SHADOWS, SPACING } from '../../theme';
 import LoadingScreen from '../../components/LoadingScreen';
 
@@ -162,23 +162,8 @@ const tilesExist = async () => (await FileSystem.getInfoAsync(TILES_DIR)).exists
 // ─────────────────────────────────────────────────────────────
 // STORAGE
 // ─────────────────────────────────────────────────────────────
-const PARCELLES_KEY = 'parcelles_saved';
-const saveParcelle = async (data) => {
-    try {
-        const raw = await AsyncStorage.getItem(PARCELLES_KEY);
-        const existing = raw ? JSON.parse(raw) : [];
-        const entry = {
-            id: Date.now().toString(),
-            date: new Date().toLocaleDateString('fr-FR'),
-            nom: data.nom_parcelle,
-            superficie: data.superficie,
-            coordonnees: data.coordonnees_polygon,
-            payload: data,
-        };
-        await AsyncStorage.setItem(PARCELLES_KEY, JSON.stringify([...existing, entry]));
-        return entry;
-    } catch { return null; }
-};
+// Plus de saveParcelle ici, on utilise addToQueue de l'API Client
+
 
 // ─────────────────────────────────────────────────────────────
 // DateInput
@@ -279,7 +264,26 @@ export default function IdentificationsScreen({ navigation }) {
     useFocusEffect(useCallback(() => {
         loadDependencies();
         tilesExist().then(setOfflineReady);
+        recoverOldData();
     }, []));
+
+    const recoverOldData = async () => {
+        try {
+            const PARCELLES_KEY = 'parcelles_saved';
+            const raw = await AsyncStorage.getItem(PARCELLES_KEY);
+            if (raw) {
+                const oldData = JSON.parse(raw);
+                if (oldData.length > 0) {
+                    for (const item of oldData) {
+                        const label = `Récupéré: ${item.nom || 'Sans nom'}`;
+                        await addToQueue('POST', '/identifications', item.payload, label);
+                    }
+                    await AsyncStorage.removeItem(PARCELLES_KEY);
+                    Alert.alert('📦 Récupération', 'D\'anciennes données ont été déplacées vers la file de synchronisation.');
+                }
+            }
+        } catch (e) { console.log('Recovery error:', e); }
+    };
 
     const loadDependencies = async () => {
         setLoadingData(true);
@@ -511,18 +515,24 @@ export default function IdentificationsScreen({ navigation }) {
         };
 
         try {
-            await apiClient.post('/identifications', payload);
-            Alert.alert('Succès ✅', 'Identification enregistrée !');
-            navigation.goBack();
-        } catch (apiError) {
-            const saved = await saveParcelle(payload);
-            if (saved) {
-                Alert.alert('📴 Sauvegardé localement',
-                    `"${nomFinal}" sera synchronisé dès que vous aurez internet.`,
+            const res = await apiClient.post('/identifications', payload);
+            if (res.data?.offline || res.data?.queued) {
+                Alert.alert('📴 Mis en attente',
+                    `"${nomFinal}" a été ajouté à la file de synchronisation (pas de connexion internet).`,
                     [{ text: 'OK', onPress: () => navigation.goBack() }]);
             } else {
-                Alert.alert('Erreur', apiError.response?.data?.message || 'Problème d\'enregistrement.');
+                Alert.alert('Succès ✅', 'Identification enregistrée !');
+                navigation.goBack();
             }
+        } catch (apiError) {
+            const errorMsg = apiError.response?.data?.message || 'Erreur réseau/serveur';
+            const label = `Identification: ${nomFinal}`;
+            
+            await addToQueue('POST', '/identifications', payload, label);
+            
+            Alert.alert('⚠️ Erreur d\'envoi direct',
+                `Enregistré localement suite à une erreur: ${errorMsg}. \n\nVeuillez synchroniser depuis l'écran Accueil > Sync.`,
+                [{ text: 'Compris', onPress: () => navigation.goBack() }]);
         } finally { setSubmitting(false); }
     };
 

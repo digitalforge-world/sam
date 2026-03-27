@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Identification extends Model
 {
     protected $fillable = [
-        'numero', 'producteur_id', 'controleur_id',
+        'numero', 'producteur_id', 'controleur_id', 'village_id', 'organisation_id',
         'superficie', 'statut', 'approbation', 'campagne',
         'culture_id', 'village', 'organisation_paysanne', 'statut_producteur', 'nom_parcelle',
         'participation_formations', 'production_parallele', 'diversite_biologique',

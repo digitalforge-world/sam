@@ -38,6 +38,8 @@ class IdentificationApiController extends Controller
             'campagne' => 'nullable|string|max:20', // the user didn't mention it, make it nullable
             
             'culture_id' => 'nullable|exists:cultures,id',
+            'village_id' => 'nullable|exists:villages,id',
+            'organisation_id' => 'nullable|exists:organisation_paysannes,id',
             'village' => 'nullable|string',
             'organisation_paysanne' => 'nullable|string',
             'statut_producteur' => 'nullable|string',
@@ -60,12 +62,12 @@ class IdentificationApiController extends Controller
             
             'commentaire' => 'nullable|string',
 
-            'date_preparation_sol' => 'nullable|date',
-            'date_semis' => 'nullable|date',
-            'date_sarclage_1' => 'nullable|date',
-            'date_sarclage_2' => 'nullable|date',
-            'date_fertilisation' => 'nullable|date',
-            'date_recolte' => 'nullable|date',
+            'date_preparation_sol' => 'nullable|string',
+            'date_semis' => 'nullable|string',
+            'date_sarclage_1' => 'nullable|string',
+            'date_sarclage_2' => 'nullable|string',
+            'date_fertilisation' => 'nullable|string',
+            'date_recolte' => 'nullable|string',
 
             'arbres' => 'nullable|array',
             'niveau_pente' => 'nullable|string',
@@ -88,10 +90,41 @@ class IdentificationApiController extends Controller
         }
 
         $validated['controleur_id'] = Auth::id();
-
-        $identification = Identification::create($validated);
         
-        return response()->json($identification->load(['producteur', 'controleur']), 201);
+        // Conversion des dates (d/m/Y -> Y-m-d)
+        $dateFields = ['date_preparation_sol', 'date_semis', 'date_sarclage_1', 'date_sarclage_2', 'date_fertilisation', 'date_recolte'];
+        foreach ($dateFields as $field) {
+            if (!empty($validated[$field])) {
+                try {
+                    $validated[$field] = \Carbon\Carbon::parse(str_replace('/', '-', $validated[$field]))->format('Y-m-d');
+                } catch (\Exception $e) {
+                    $validated[$field] = null;
+                }
+            }
+        }
+
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($validated) {
+            $identification = Identification::create($validated);
+
+            // ── Création automatique de la PARCELLE ──
+            // On crée une parcelle rattachée au producteur
+            \App\Models\Parcelle::create([
+                'producteur_id'          => $identification->producteur_id,
+                'village_id'             => $identification->village_id,
+                'culture_id'             => $identification->culture_id,
+                'superficie'             => $identification->superficie,
+                'superficie_bio'         => $identification->superficie, // Par défaut on met tout en bio au début ?
+                'bio'                    => true,
+                'approbation_production' => 'BIO', // Facultatif, selon workflow
+                'niveau_pente'           => $identification->niveau_pente ?: 'WITHOUT',
+                'type_culture'           => $identification->type_culture ?: 'SINGLE',
+                'a_cours_eau'            => $identification->a_cours_eau,
+                'maisons_proximite'      => $identification->maisons_environnantes,
+                'contour'                => $identification->coordonnees_polygon,
+            ]);
+
+            return response()->json($identification->load(['producteur', 'controleur']), 201);
+        });
     }
 
     public function show(Identification $identification)

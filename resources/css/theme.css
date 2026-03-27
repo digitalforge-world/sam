@@ -401,6 +401,45 @@ body {
     color: var(--color-text-primary);
 }
 
+.btn-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.btn-export-pdf {
+    background-color: #FEF2F2;
+    color: #DC2626;
+    border-color: #FEE2E2;
+}
+
+.btn-export-pdf:hover {
+    background-color: #DC2626;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.2);
+}
+
+.btn-export-excel {
+    background-color: #F0FDF4;
+    color: #16A34A;
+    border-color: #DCFCE7;
+}
+
+.btn-export-excel:hover {
+    background-color: #16A34A;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2);
+}
+
 .btn-danger-custom {
     background: #FEE2E2;
     color: #DC2626;

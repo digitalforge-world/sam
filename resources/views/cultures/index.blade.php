@@ -4,7 +4,15 @@
 @section('content')
 <div class="page-header">
     <div><h1 class="page-title">Cultures</h1><p class="page-subtitle">{{ $cultures->total() }} cultures</p></div>
-    <a href="{{ route('cultures.create') }}" class="btn-primary-custom"><i data-lucide="plus" style="width:16px;height:16px"></i> Nouvelle</a>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <a href="{{ route('export.cultures.pdf') }}" class="btn-export btn-export-pdf" title="Télécharger PDF">
+            <i data-lucide="file-text" style="width:15px;height:15px"></i> PDF
+        </a>
+        <a href="{{ route('export.cultures.excel') }}" class="btn-export btn-export-excel" title="Télécharger Excel">
+            <i data-lucide="table-2" style="width:15px;height:15px"></i> Excel
+        </a>
+        <a href="{{ route('cultures.create') }}" class="btn-primary-custom"><i data-lucide="plus" style="width:16px;height:16px"></i> Nouvelle</a>
+    </div>
 </div>
 <div class="card">
     @if($cultures->count())

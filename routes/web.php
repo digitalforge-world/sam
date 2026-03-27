@@ -13,6 +13,7 @@ use App\Http\Controllers\Web\{
     UserController,
     ParametreController,
     ProfileController,
+    ExportController,
 };
 use App\Http\Controllers\Web\Areas\{
     RegionController,
@@ -78,6 +79,18 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/geojson',       [CarteController::class, 'geojson'])->name('geojson');
             Route::post('/save-contour', [CarteController::class, 'saveContour'])->name('save-contour');
             Route::delete('/parcelles/{parcelle}/contour', [CarteController::class, 'deleteContour'])->name('delete-contour');
+        });
+
+        // ── Exports PDF / Excel ──────────────────────────────────────
+        Route::prefix('export')->name('export.')->group(function () {
+            Route::get('organisations/pdf',   [ExportController::class, 'organisationsPdf'])->name('organisations.pdf');
+            Route::get('organisations/excel', [ExportController::class, 'organisationsExcel'])->name('organisations.excel');
+            Route::get('producteurs/pdf',     [ExportController::class, 'producteursPdf'])->name('producteurs.pdf');
+            Route::get('producteurs/excel',   [ExportController::class, 'producteursExcel'])->name('producteurs.excel');
+            Route::get('cultures/pdf',        [ExportController::class, 'culturesPdf'])->name('cultures.pdf');
+            Route::get('cultures/excel',      [ExportController::class, 'culturesExcel'])->name('cultures.excel');
+            Route::get('parcelles/pdf',       [ExportController::class, 'parcellesPdf'])->name('parcelles.pdf');
+            Route::get('parcelles/excel',     [ExportController::class, 'parcellesExcel'])->name('parcelles.excel');
         });
     });
 

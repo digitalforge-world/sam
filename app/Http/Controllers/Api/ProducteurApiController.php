@@ -39,36 +39,41 @@ class ProducteurApiController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nom' => 'required|string|max:100',
-            'prenom' => 'required|string|max:100',
-            'sexe' => 'sometimes|nullable|string|in:Masculin,Féminin',
-            'telephone' => 'nullable|string|max:20',
-            'type_carte' => 'nullable|string|max:100',
-            'statut' => 'sometimes|nullable|string|in:Nouveau,Ancien',
-            'annee_adhesion' => 'required_if:statut,Ancien|nullable|integer',
-            'zone_id' => 'nullable|exists:zones,id',
-            'village_id' => 'required|exists:villages,id',
+            'nom'                    => 'required|string|max:100',
+            'prenom'                 => 'required|string|max:100',
+            'sexe'                   => 'sometimes|nullable|string|in:Masculin,Féminin,M,F',
+            'telephone'              => 'nullable|string|max:20',
+            'type_carte'             => 'nullable|string|max:100',
+            'statut'                 => 'sometimes|nullable|string|in:Nouveau,Ancien,nouveau,ancien',
+            'annee_adhesion'         => 'nullable|integer|min:1900|max:2100',
+            'zone_id'                => 'nullable|exists:zones,id',
+            'village_id'             => 'required|exists:villages,id',
             'organisation_paysanne_id' => 'nullable|exists:organisation_paysannes,id',
-            'est_actif' => 'boolean'
+            'est_actif'              => 'boolean'
         ]);
+
+        // Normaliser statut en minuscule pour correspondre à la DB (default 'nouveau')
+        if (!empty($validated['statut'])) {
+            $validated['statut'] = strtolower($validated['statut']);
+        }
 
         $user = Auth::user();
         $validated['controleur_id'] = $user->id;
-        
-        // Sécurité : Si la zone n'est pas fournie, on tente de prendre celle du controleur
+
+        // Récupérer zone_id depuis le compte utilisateur (controleur)
         if (empty($validated['zone_id'])) {
             $validated['zone_id'] = $user->zone_id;
         }
 
-        // Si après l'assignation automatique la zone est toujours vide, on affiche une erreur claire
+        // Si toujours vide → erreur claire
         if (empty($validated['zone_id'])) {
             return response()->json([
-                'message' => 'Veuillez contacter l\'administrateur : votre compte n\'est affecté à aucune zone de travail.'
+                'message' => 'Votre compte n\'est affecté à aucune zone. Veuillez contacter l\'administrateur.'
             ], 422);
         }
-        
+
         $producteur = Producteur::create($validated);
-        
+
         return response()->json($producteur->load(['zone', 'village', 'organisation', 'controleur']), 201);
     }
 

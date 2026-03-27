@@ -75,9 +75,9 @@ export default function ProducteursScreen({ navigation }) {
                 telephone: telephone.trim() || null,
                 type_carte: typeCarte || null,
                 statut: statut || null,
-                annee_adhesion: annee || null,
-                village_id: selectedVillage,
-                organisation_paysanne_id: selectedOrganisation || null,
+                annee_adhesion: annee ? parseInt(annee, 10) : null,
+                village_id: parseInt(selectedVillage, 10),
+                organisation_paysanne_id: selectedOrganisation ? parseInt(selectedOrganisation, 10) : null,
             });
 
             if (res?.data?.offline || res?.data?.queued) {
@@ -92,7 +92,18 @@ export default function ProducteursScreen({ navigation }) {
                 ]);
             }
         } catch (e) {
-            Alert.alert('Erreur', e.response?.data?.message || 'Problème d\'enregistrement.');
+            // Extraire le vrai message d'erreur Laravel (validation 422 ou erreur 500)
+            const serverData = e.response?.data;
+            let errMsg = 'Problème d\'enregistrement.';
+            if (serverData?.message) {
+                errMsg = serverData.message;
+            }
+            if (serverData?.errors) {
+                // Erreurs de validation Laravel — afficher la première erreur
+                const firstField = Object.keys(serverData.errors)[0];
+                errMsg = serverData.errors[firstField]?.[0] ?? errMsg;
+            }
+            Alert.alert('Erreur (' + (e.response?.status ?? 'réseau') + ')', errMsg);
         } finally {
             setSubmitting(false);
         }

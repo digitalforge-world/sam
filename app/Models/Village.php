@@ -12,10 +12,8 @@ class Village extends Model
 {
     protected $fillable = ['region_id', 'prefecture_id', 'commune_id', 'canton_id', 'controleur_id', 'nom', 'zone'];
 
-    protected static function booted(): void
-    {
-        static::addGlobalScope(new ZoneScope());
-    }
+    // Plus de ZoneScope ici car villages n'a pas de zone_id
+
 
 
     public function region(): BelongsTo     { return $this->belongsTo(Region::class); }

@@ -48,4 +48,16 @@ class ControleController extends Controller
         Controle::create($data);
         return redirect()->route('controles.index')->with('success', 'Contrôle créé.');
     }
+
+    public function show(Controle $controle)
+    {
+        $controle->load(['parcelle', 'producteur', 'culture', 'controleur']);
+        return view('controles.show', compact('controle'));
+    }
+
+    public function destroy(Controle $controle)
+    {
+        $controle->delete();
+        return redirect()->route('controles.index')->with('success', 'Contrôle supprimé avec succès.');
+    }
 }

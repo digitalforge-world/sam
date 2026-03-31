@@ -10,7 +10,7 @@
     @if($controles->count())
     <div style="overflow-x:auto">
         <table class="data-table">
-            <thead><tr><th>Numéro</th><th>Producteur</th><th>Parcelle</th><th>Culture</th><th class="numeric">Sup. parcelle</th><th class="numeric">Sup. bio</th><th>Campagne</th><th>Contrôleur</th></tr></thead>
+            <thead><tr><th>Numéro</th><th>Producteur</th><th>Parcelle</th><th>Culture</th><th class="numeric">Sup. parcelle</th><th class="numeric">Sup. bio</th><th>Campagne</th><th>Contrôleur</th><th>Date</th><th class="actions">Actions</th></tr></thead>
             <tbody>
                 @foreach($controles as $c)
                 <tr>
@@ -22,6 +22,14 @@
                     <td class="numeric">{{ $c->superficie_bio ? number_format($c->superficie_bio, 3) : '—' }}</td>
                     <td>{{ $c->campagne }}</td>
                     <td>{{ $c->controleur?->name ?? '—' }}</td>
+                    <td>{{ $c->created_at->format('d/m/Y') }}</td>
+                    <td class="actions">
+                        <a href="{{ route('controles.show', $c) }}" class="btn-icon-sm btn-icon-primary" title="Voir"><i data-lucide="eye" style="width:14px;height:14px"></i></a>
+                        <form method="POST" action="{{ route('controles.destroy', $c) }}" style="display:inline" onsubmit="return confirm('Vraiment supprimer ce contrôle ?')">
+                            @csrf @method('DELETE')
+                            <button class="btn-icon-sm btn-icon-danger" title="Supprimer"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button>
+                        </form>
+                    </td>
                 </tr>
                 @endforeach
             </tbody>

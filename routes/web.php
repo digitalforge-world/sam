@@ -73,7 +73,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('arbres/{arbre}', [ArbreController::class, 'destroy'])->name('arbres.destroy');
         Route::resource('identifications', IdentificationController::class);
         Route::patch('identifications/{identification}/approve', [IdentificationController::class, 'approve'])->name('identifications.approve');
-        Route::resource('controles', ControleController::class)->only(['index', 'create', 'store']);
+        Route::resource('controles', ControleController::class);
         Route::prefix('carte')->name('carte.')->group(function () {
             Route::get('/',              [CarteController::class, 'index'])->name('index');
             Route::get('/geojson',       [CarteController::class, 'geojson'])->name('geojson');

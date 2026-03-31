@@ -6,9 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- Favicons --}}
-    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
-    <link rel="icon" type="image/png" href="/favicon.png?v=3">
-    <link rel="apple-touch-icon" href="/favicon.png?v=3">
+    <link rel="icon" type="image/png" href="/logo-fav.png?v=4">
+    <link rel="apple-touch-icon" href="/logo-fav.png?v=4">
 
     <title>@yield('title', 'Tableau de bord') — {{ config('app.name', 'OFCA') }}</title>
 

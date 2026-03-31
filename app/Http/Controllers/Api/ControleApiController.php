@@ -29,14 +29,21 @@ class ControleApiController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'numero' => 'required|string|max:50',
-            'parcelle_id' => 'required|exists:parcelles,id',
+            'numero' => 'nullable|string|max:50',
+            'parcelle_id' => 'nullable|exists:parcelles,id',
             'producteur_id' => 'required|exists:producteurs,id',
-            'culture_id' => 'required|exists:cultures,id',
+            'culture_id' => 'nullable|exists:cultures,id',
             'superficie_parcelle' => 'nullable|numeric|min:0',
             'superficie_bio' => 'nullable|numeric|min:0',
-            'campagne' => 'required|string|max:20',
+            'campagne' => 'nullable|string|max:20',
         ]);
+
+        if (empty($validated['numero'])) {
+            $validated['numero'] = 'CTRL-' . strtoupper(uniqid());
+        }
+        if (empty($validated['campagne'])) {
+            $validated['campagne'] = date('Y') . '-' . (date('Y') + 1);
+        }
 
         $validated['controleur_id'] = Auth::id();
 

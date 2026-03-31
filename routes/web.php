@@ -71,7 +71,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('parcelles', ParcelleController::class);
         Route::post('parcelles/{parcelle}/arbres', [ArbreController::class, 'store'])->name('parcelles.arbres.store');
         Route::delete('arbres/{arbre}', [ArbreController::class, 'destroy'])->name('arbres.destroy');
-        Route::resource('identifications', IdentificationController::class)->only(['index', 'create', 'store']);
+        Route::resource('identifications', IdentificationController::class);
         Route::patch('identifications/{identification}/approve', [IdentificationController::class, 'approve'])->name('identifications.approve');
         Route::resource('controles', ControleController::class)->only(['index', 'create', 'store']);
         Route::prefix('carte')->name('carte.')->group(function () {

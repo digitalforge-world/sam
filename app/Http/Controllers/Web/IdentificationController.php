@@ -54,4 +54,28 @@ class IdentificationController extends Controller
         $identification->update($data);
         return redirect()->back()->with('success', 'Identification mise à jour.');
     }
+
+    public function show(Identification $identification)
+    {
+        $identification->load(['producteur', 'controleur']);
+        return view('identifications.show', compact('identification'));
+    }
+
+    public function edit(Identification $identification)
+    {
+        $producteurs = Producteur::actif()->orderBy('nom')->get();
+        return view('identifications.edit', compact('identification', 'producteurs'));
+    }
+
+    public function update(Request $request, Identification $identification)
+    {
+        // Add basic update logic here if needed or just redirect
+        return redirect()->route('identifications.index')->with('success', 'Fonctionnalité d\'édition en cours de création.');
+    }
+
+    public function destroy(Identification $identification)
+    {
+        $identification->delete();
+        return redirect()->route('identifications.index')->with('success', 'Identification supprimée.');
+    }
 }

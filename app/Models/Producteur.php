@@ -28,7 +28,7 @@ class Producteur extends Model
 
         static::creating(function (Producteur $p) {
             $last = static::withoutGlobalScopes()->max('id') ?? 0;
-            $p->code = 'PROD-' . str_pad($last + 1, 5, '0', STR_PAD_LEFT);
+            $p->code = '25An' . str_pad($last + 1, 3, '0', STR_PAD_LEFT);
         });
     }
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,7 +15,9 @@
     {{-- Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
 
     {{-- Lucide Icons --}}
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -24,25 +27,26 @@
 
     @stack('styles')
 </head>
+
 <body>
     <div class="app-wrapper">
 
         {{-- ── Sidebar ────────────────────────────────── --}}
         <aside class="app-sidebar" id="sidebar">
             <a href="{{ route('dashboard') }}" class="sidebar-logo">
-                <img src="{{ asset('assets/img/logo-ofca.png') }}" alt="OFCA Logo" style="height: 48px; width: auto; margin-right: 10px;">
-                <div class="logo-text">
-                    <div class="title">OFCA</div>
-                    <div class="subtitle">SCOOPS-SNC</div>
-                </div>
+                <img src="{{ asset('assets/img/logo-ofca.png') }}" alt="OFCA Logo"
+                    style="height: 48px; width: auto; margin-right: 10px;">
+
             </a>
 
             {{-- Main menu --}}
             <div class="menu-section">Navigation</div>
             <ul style="list-style:none;padding:0;margin:0;">
                 <li class="menu-item">
-                    <a href="{{ route('dashboard') }}" class="menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                        <span class="menu-icon"><i data-lucide="layout-dashboard" style="width:18px;height:18px"></i></span>
+                    <a href="{{ route('dashboard') }}"
+                        class="menu-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                        <span class="menu-icon"><i data-lucide="layout-dashboard"
+                                style="width:18px;height:18px"></i></span>
                         Tableau de bord
                     </a>
                 </li>
@@ -52,37 +56,43 @@
             <div class="menu-section">Géographie</div>
             <ul style="list-style:none;padding:0;margin:0;">
                 <li class="menu-item">
-                    <a href="{{ route('areas.regions.index') }}" class="menu-link {{ request()->routeIs('areas.regions.*') ? 'active' : '' }}">
+                    <a href="{{ route('areas.regions.index') }}"
+                        class="menu-link {{ request()->routeIs('areas.regions.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="globe" style="width:18px;height:18px"></i></span>
                         Régions
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{{ route('areas.prefectures.index') }}" class="menu-link {{ request()->routeIs('areas.prefectures.*') ? 'active' : '' }}">
+                    <a href="{{ route('areas.prefectures.index') }}"
+                        class="menu-link {{ request()->routeIs('areas.prefectures.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="building-2" style="width:18px;height:18px"></i></span>
                         Préfectures
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{{ route('areas.communes.index') }}" class="menu-link {{ request()->routeIs('areas.communes.*') ? 'active' : '' }}">
+                    <a href="{{ route('areas.communes.index') }}"
+                        class="menu-link {{ request()->routeIs('areas.communes.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="map" style="width:18px;height:18px"></i></span>
                         Communes
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{{ route('areas.cantons.index') }}" class="menu-link {{ request()->routeIs('areas.cantons.*') ? 'active' : '' }}">
+                    <a href="{{ route('areas.cantons.index') }}"
+                        class="menu-link {{ request()->routeIs('areas.cantons.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="map-pin" style="width:18px;height:18px"></i></span>
                         Cantons
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{{ route('areas.villages.index') }}" class="menu-link {{ request()->routeIs('areas.villages.*') ? 'active' : '' }}">
+                    <a href="{{ route('areas.villages.index') }}"
+                        class="menu-link {{ request()->routeIs('areas.villages.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="home" style="width:18px;height:18px"></i></span>
                         Villages
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{{ route('areas.zones.index') }}" class="menu-link {{ request()->routeIs('areas.zones.*') ? 'active' : '' }}">
+                    <a href="{{ route('areas.zones.index') }}"
+                        class="menu-link {{ request()->routeIs('areas.zones.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="target" style="width:18px;height:18px"></i></span>
                         Zones
                     </a>
@@ -93,25 +103,29 @@
             <div class="menu-section">Production</div>
             <ul style="list-style:none;padding:0;margin:0;">
                 <li class="menu-item">
-                    <a href="{{ route('organisations.index') }}" class="menu-link {{ request()->routeIs('organisations.*') ? 'active' : '' }}">
+                    <a href="{{ route('organisations.index') }}"
+                        class="menu-link {{ request()->routeIs('organisations.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="users" style="width:18px;height:18px"></i></span>
                         Organisations
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{{ route('producteurs.index') }}" class="menu-link {{ request()->routeIs('producteurs.*') ? 'active' : '' }}">
+                    <a href="{{ route('producteurs.index') }}"
+                        class="menu-link {{ request()->routeIs('producteurs.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="user" style="width:18px;height:18px"></i></span>
                         Producteurs
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{{ route('cultures.index') }}" class="menu-link {{ request()->routeIs('cultures.*') ? 'active' : '' }}">
+                    <a href="{{ route('cultures.index') }}"
+                        class="menu-link {{ request()->routeIs('cultures.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="sprout" style="width:18px;height:18px"></i></span>
                         Cultures
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{{ route('parcelles.index') }}" class="menu-link {{ request()->routeIs('parcelles.*') ? 'active' : '' }}">
+                    <a href="{{ route('parcelles.index') }}"
+                        class="menu-link {{ request()->routeIs('parcelles.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="land-plot" style="width:18px;height:18px"></i></span>
                         Parcelles
                     </a>
@@ -122,19 +136,23 @@
             <div class="menu-section">Certification</div>
             <ul style="list-style:none;padding:0;margin:0;">
                 <li class="menu-item">
-                    <a href="{{ route('identifications.index') }}" class="menu-link {{ request()->routeIs('identifications.*') ? 'active' : '' }}">
+                    <a href="{{ route('identifications.index') }}"
+                        class="menu-link {{ request()->routeIs('identifications.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="file-check" style="width:18px;height:18px"></i></span>
                         Identifications
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{{ route('controles.index') }}" class="menu-link {{ request()->routeIs('controles.*') ? 'active' : '' }}">
-                        <span class="menu-icon"><i data-lucide="clipboard-check" style="width:18px;height:18px"></i></span>
+                    <a href="{{ route('controles.index') }}"
+                        class="menu-link {{ request()->routeIs('controles.*') ? 'active' : '' }}">
+                        <span class="menu-icon"><i data-lucide="clipboard-check"
+                                style="width:18px;height:18px"></i></span>
                         Contrôles
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{{ route('carte.index') }}" class="menu-link {{ request()->routeIs('carte.*') ? 'active' : '' }}">
+                    <a href="{{ route('carte.index') }}"
+                        class="menu-link {{ request()->routeIs('carte.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="map" style="width:18px;height:18px"></i></span>
                         Carte
                     </a>
@@ -146,13 +164,15 @@
             <div class="menu-section">Administration</div>
             <ul style="list-style:none;padding:0;margin:0;">
                 <li class="menu-item">
-                    <a href="{{ route('users.index') }}" class="menu-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                    <a href="{{ route('users.index') }}"
+                        class="menu-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="users-round" style="width:18px;height:18px"></i></span>
                         Utilisateurs
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{{ route('parametres.index') }}" class="menu-link {{ request()->routeIs('parametres.*') ? 'active' : '' }}">
+                    <a href="{{ route('parametres.index') }}"
+                        class="menu-link {{ request()->routeIs('parametres.*') ? 'active' : '' }}">
                         <span class="menu-icon"><i data-lucide="settings" style="width:18px;height:18px"></i></span>
                         Paramètres
                     </a>
@@ -185,7 +205,8 @@
                     </div>
                     <form method="POST" action="{{ route('logout') }}" style="margin:0;">
                         @csrf
-                        <button type="submit" class="btn-icon-sm btn-icon-danger" title="Déconnexion" style="cursor:pointer">
+                        <button type="submit" class="btn-icon-sm btn-icon-danger" title="Déconnexion"
+                            style="cursor:pointer">
                             <i data-lucide="log-out" style="width:16px;height:16px"></i>
                         </button>
                     </form>
@@ -236,4 +257,5 @@
 
     @stack('scripts')
 </body>
+
 </html>

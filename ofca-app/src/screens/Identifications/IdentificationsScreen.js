@@ -311,8 +311,11 @@ export default function IdentificationsScreen({ navigation }) {
         const result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true, aspect: [4, 3], quality: 0.7,
+            base64: true,
         });
-        if (!result.canceled) setPhotoURI(result.assets[0].uri);
+        if (!result.canceled) {
+            setPhotoURI('data:image/jpeg;base64,' + result.assets[0].base64);
+        }
     };
 
     const handleSignature = (sig) => { setSignatureURI(sig); setSignatureVisible(false); };

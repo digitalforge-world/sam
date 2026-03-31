@@ -64,13 +64,41 @@ class IdentificationController extends Controller
     public function edit(Identification $identification)
     {
         $producteurs = Producteur::actif()->orderBy('nom')->get();
-        return view('identifications.edit', compact('identification', 'producteurs'));
+        $cultures = \App\Models\Culture::orderBy('nom')->get();
+        $villages = \App\Models\Village::orderBy('nom')->get();
+        $organisations = \App\Models\OrganisationPaysanne::orderBy('nom')->get();
+        return view('identifications.edit', compact('identification', 'producteurs', 'cultures', 'villages', 'organisations'));
     }
 
     public function update(Request $request, Identification $identification)
     {
-        // Add basic update logic here if needed or just redirect
-        return redirect()->route('identifications.index')->with('success', 'Fonctionnalité d\'édition en cours de création.');
+        $data = $request->validate([
+            'superficie' => 'nullable|numeric|min:0',
+            'campagne' => 'required|string|max:20',
+            'statut' => 'required|in:EN_ATTENTE,APPROUVE,REJETE',
+            'culture_id' => 'nullable|exists:cultures,id',
+            'village_id' => 'nullable|exists:villages,id',
+            'organisation_id' => 'nullable|exists:organisation_paysannes,id',
+            'nom_parcelle' => 'nullable|string',
+            'participation_formations' => 'boolean',
+            'production_parallele' => 'boolean',
+            'diversite_biologique' => 'boolean',
+            'gestion_dechets' => 'boolean',
+            'emballage_non_conforme' => 'boolean',
+            'rotation_cultures' => 'boolean',
+            'isolement_parcelles' => 'boolean',
+            'preparation_sol' => 'boolean',
+            'fertilisation' => 'boolean',
+            'semences' => 'boolean',
+            'gestion_adventices' => 'boolean',
+            'gestion_ravageurs' => 'boolean',
+            'recolte' => 'boolean',
+            'stockage' => 'boolean',
+            'commentaire' => 'nullable|string',
+        ]);
+        
+        $identification->update($data);
+        return redirect()->route('identifications.show', $identification)->with('success', 'Identification modifiée avec succès.');
     }
 
     public function destroy(Identification $identification)

@@ -27,9 +27,7 @@
                     <td>{{ $i->created_at->format('d/m/Y') }}</td>
                     <td class="actions">
                         <a href="{{ route('identifications.show', $i) }}" class="btn-icon-sm btn-icon-primary" title="Voir"><i data-lucide="eye" style="width:14px;height:14px"></i></a>
-                        @can('identifications.edit')
                         <a href="{{ route('identifications.edit', $i) }}" class="btn-icon-sm btn-icon-secondary" title="Modifier"><i data-lucide="edit-3" style="width:14px;height:14px"></i></a>
-                        @endcan
 
                         @can('identifications.approve')
                         @if($i->statut === 'EN_ATTENTE')
@@ -46,12 +44,10 @@
                         @endif
                         @endcan
 
-                        @can('identifications.delete')
                         <form method="POST" action="{{ route('identifications.destroy', $i) }}" style="display:inline" onsubmit="return confirm('Vraiment supprimer cette identification ?')">
                             @csrf @method('DELETE')
                             <button class="btn-icon-sm btn-icon-danger" title="Supprimer"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button>
                         </form>
-                        @endcan
                     </td>
                 </tr>
                 @endforeach

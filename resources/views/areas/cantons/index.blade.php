@@ -17,7 +17,7 @@
             <tbody>
                 @foreach($cantons as $c)
                 <tr>
-                    <td class="code">{{ $c->id }}</td><td style="font-weight:600">{{ $c->nom }}</td><td>{{ $c->region->nom }}</td><td>{{ $c->prefecture->nom }}</td><td class="numeric">{{ $c->villages_count }}</td>
+                    <td class="code">{{ $c->id }}</td><td style="font-weight:600">{{ $c->nom }}</td><td>{{ $c->region?->nom ?? '—' }}</td><td>{{ $c->prefecture?->nom ?? '—' }}</td><td class="numeric">{{ $c->villages_count }}</td>
                     <td class="actions">
                         @can('cantons.edit')<a href="{{ route('areas.cantons.edit', $c) }}" class="btn-icon-sm btn-icon-warning"><i data-lucide="pencil" style="width:14px;height:14px"></i></a>@endcan
                         @can('cantons.delete')<form method="POST" action="{{ route('areas.cantons.destroy', $c) }}" style="display:inline" onsubmit="return confirm('Supprimer ?')">@csrf @method('DELETE')<button class="btn-icon-sm btn-icon-danger"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button></form>@endcan

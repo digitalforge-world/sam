@@ -48,16 +48,36 @@
         <h3 class="card-title">Photo et Signature</h3>
         <div style="margin-top: 15px;">
             @if($identification->photo_parcelle)
+                @php
+                    $photo = $identification->photo_parcelle;
+                    if (strlen($photo) > 500 && !Str::startsWith($photo, 'data:image')) {
+                        $photoSrc = 'data:image/jpeg;base64,' . $photo;
+                    } elseif (Str::startsWith($photo, ['http', 'data:image'])) {
+                        $photoSrc = $photo;
+                    } else {
+                        $photoSrc = Storage::url($photo);
+                    }
+                @endphp
                 <div style="margin-bottom: 20px;">
                     <strong>Photo de l'identification :</strong><br>
-                    <img src="{{ Str::startsWith($identification->photo_parcelle, 'http') ? $identification->photo_parcelle : Storage::url($identification->photo_parcelle) }}" alt="Photo" style="max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; object-fit: cover;">
+                    <img src="{{ $photoSrc }}" alt="Photo" style="max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; object-fit: cover;">
                 </div>
             @endif
 
             @if($identification->signature_producteur)
+                @php
+                    $sig = $identification->signature_producteur;
+                    if (strlen($sig) > 500 && !Str::startsWith($sig, 'data:image')) {
+                        $sigSrc = 'data:image/png;base64,' . $sig;
+                    } elseif (Str::startsWith($sig, ['http', 'data:image'])) {
+                        $sigSrc = $sig;
+                    } else {
+                        $sigSrc = Storage::url($sig);
+                    }
+                @endphp
                 <div>
                     <strong>Signature du producteur :</strong><br>
-                    <img src="{{ Str::startsWith($identification->signature_producteur, 'http') ? $identification->signature_producteur : Storage::url($identification->signature_producteur) }}" alt="Signature" style="max-width: 100%; max-height: 150px; border-radius: 4px; border: 1px solid #eee; margin-top: 10px; background: #fdfdfd; object-fit: contain;">
+                    <img src="{{ $sigSrc }}" alt="Signature" style="max-width: 100%; max-height: 150px; border-radius: 4px; border: 1px solid #eee; margin-top: 10px; background: #fdfdfd; object-fit: contain;">
                 </div>
             @endif
 

@@ -46,16 +46,4 @@
     </div>
 
 </div>
-
-<!-- Data JSON complet pour le développeur (Optionnel mais pratique) -->
-<div class="card" style="margin-top: 20px;">
-    <h3 class="card-title">Données Brutes (Technique)</h3>
-    <div style="margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 13px; overflow-x: auto;">
-        @php
-            $rawVars = $controle->toArray();
-            unset($rawVars['parcelle'], $rawVars['producteur'], $rawVars['culture'], $rawVars['controleur']);
-        @endphp
-        <pre style="margin: 0;">{{ json_encode($rawVars, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-    </div>
-</div>
 @endsection

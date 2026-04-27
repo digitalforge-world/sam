@@ -49,10 +49,19 @@ class IdentificationController extends Controller
         $data = $request->validate([
             'statut' => 'required|in:APPROUVE,REJETE',
             'approbation' => 'nullable|in:BIO,OK,DECLASSIFIED',
+            'commentaire' => 'nullable|string',
         ]);
 
         $identification->update($data);
-        return redirect()->back()->with('success', 'Identification mise à jour.');
+        
+        $statusLabel = $data['statut'] === 'APPROUVE' ? 'approuvée' : 'rejetée';
+        $message = "L'identification a été {$statusLabel} avec succès.";
+        
+        if ($data['statut'] === 'REJETE') {
+            $message .= " Elle est renvoyée au contrôleur pour correction.";
+        }
+
+        return redirect()->route('identifications.index')->with('success', $message);
     }
 
     public function show(Identification $identification)

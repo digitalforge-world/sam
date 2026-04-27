@@ -7,6 +7,30 @@
     <li class="breadcrumb-item current">Détails</li>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+    #map { height: 400px; width: 100%; border-radius: 8px; z-index: 1; border: 1px solid #e2e8f0; }
+    .superficie-label {
+        background: rgba(255, 255, 255, 0.4);
+        padding: 5px 10px;
+        border-radius: 4px;
+        color: #1a1a1a;
+        font-weight: 800;
+        font-size: 1.8rem;
+        text-align: center;
+        width: auto !important;
+        height: auto !important;
+        white-space: nowrap;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: translate(-50%, -50%);
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="page-header">
     <div>
@@ -19,6 +43,46 @@
         </a>
     </div>
 </div>
+
+@can('identifications.approve')
+@if($identification->statut === 'EN_ATTENTE')
+<div class="card" style="grid-column: 1 / -1; background-color: #f0f7ff; border: 1px solid #cce3ff; margin-bottom: 2rem; padding: 20px;">
+    <h3 class="card-title" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+        <i data-lucide="shield-check" style="width:20px;height:20px; color: var(--primary);"></i>
+        Actions de Validation
+    </h3>
+    <form action="{{ route('identifications.approve', $identification) }}" method="POST">
+        @csrf
+        @method('PATCH')
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div>
+                <label for="approbation" class="form-label" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Type d'approbation (si approuvée)</label>
+                <select name="approbation" id="approbation" class="form-control" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #d1d5db;">
+                    <option value="OK">OK - Conforme</option>
+                    <option value="BIO">BIO - Agriculture Biologique</option>
+                    <option value="DECLASSIFIED">Déclassé</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="commentaire" class="form-label" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Commentaire / Motif de rejet</label>
+                <input type="text" name="commentaire" id="commentaire" class="form-control" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #d1d5db;" placeholder="Expliquez votre décision si nécessaire...">
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="submit" name="statut" value="APPROUVE" class="btn-primary-custom" style="background-color: var(--success); border: none; padding: 10px 20px; color: white; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="check" style="width:18px;height:18px"></i> Approuver l'identification
+            </button>
+            <button type="submit" name="statut" value="REJETE" class="btn-primary-custom" style="background-color: var(--error); border: none; padding: 10px 20px; color: white; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;" onclick="return confirm('Voulez-vous vraiment rejeter cette identification ? Elle sera renvoyée au contrôleur.')">
+                <i data-lucide="x" style="width:18px;height:18px"></i> Rejeter / Renvoyer
+            </button>
+        </div>
+    </form>
+</div>
+@endif
+@endcan
 
 <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
     <!-- Général -->
@@ -120,6 +184,12 @@
                 </div>
             </div>
         </div>
+
+        @if(is_array($identification->coordonnees_polygon) && count($identification->coordonnees_polygon) > 0)
+        <div style="margin-top: 20px;">
+            <div id="map"></div>
+        </div>
+        @endif
     </div>
     
     <!-- Historique -->
@@ -149,3 +219,59 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    @if(is_array($identification->coordonnees_polygon) && count($identification->coordonnees_polygon) > 0)
+        const coords = @json($identification->coordonnees_polygon);
+        
+        // Transform coords to Leaflet format [lat, lng]
+        const leafletCoords = coords.map(p => [
+            p.latitude ?? p.lat ?? 0,
+            p.longitude ?? p.lng ?? p.lon ?? 0
+        ]);
+
+        const map = L.map('map', {
+            zoomControl: true,
+            scrollWheelZoom: false
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Satellite layer option
+        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; Esri'
+        });
+        
+        const baseMaps = {
+            "Standard": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'),
+            "Satellite": satellite
+        };
+        L.control.layers(baseMaps).addTo(map);
+
+        const polygon = L.polygon(leafletCoords, {
+            color: '#1B6B4A',
+            fillColor: '#22c55e',
+            fillOpacity: 0.3,
+            weight: 3
+        }).addTo(map);
+
+        map.fitBounds(polygon.getBounds(), { padding: [20, 20] });
+
+        // Add superficie label in center
+        const center = polygon.getBounds().getCenter();
+        L.marker(center, {
+            icon: L.divIcon({
+                className: 'superficie-label',
+                html: '{{ number_format($identification->superficie, 4, ",", " ") }} ha',
+                iconAnchor: [50, 10]
+            })
+        }).addTo(map);
+    @endif
+});
+</script>
+@endpush

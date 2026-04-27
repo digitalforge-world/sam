@@ -95,7 +95,8 @@ class ProducteurController extends Controller
 
     public function filter(Request $request)
     {
-        return Producteur::actif()
+        return Producteur::withoutGlobalScopes()
+            ->actif()
             ->when($request->zone_id, fn($q, $v) => $q->where('zone_id', $v))
             ->when($request->village_id, fn($q, $v) => $q->where('village_id', $v))
             ->get(['id', 'nom', 'prenom', 'code'])

@@ -25,7 +25,7 @@ class CarteController extends Controller
     public function geojson(Request $request)
     {
         $parcelles = Parcelle::query()
-            ->with(['producteur:id,nom,prenom,code', 'culture:id,nom', 'village:id,nom'])
+            ->with(['producteur' => fn($q) => $q->withoutGlobalScopes(), 'culture:id,nom', 'village:id,nom'])
             ->whereNotNull('contour')
             ->when($request->zone_id, fn($q, $v) => $q->whereHas('producteur', fn($q) => $q->withoutGlobalScopes()->where('zone_id', $v)))
             ->when($request->producteur_id, fn($q, $v) => $q->where('producteur_id', $v))
@@ -34,24 +34,58 @@ class CarteController extends Controller
 
         return response()->json([
             'type'     => 'FeatureCollection',
-            'features' => $parcelles->map(fn(Parcelle $p) => [
-                'type'       => 'Feature',
-                'id'         => $p->id,
-                'geometry'   => $p->contour,
-                'properties' => [
-                    'id'              => $p->id,
-                    'indice'          => $p->indice,
-                    'producteur'      => "{$p->producteur->nom} {$p->producteur->prenom}",
-                    'code_producteur' => $p->producteur->code,
-                    'village'         => $p->village?->nom,
-                    'culture'         => $p->culture?->nom,
-                    'superficie'      => $p->superficie,
-                    'superficie_bio'  => $p->superficie_bio,
-                    'bio'             => $p->bio,
-                    'approbation'     => $p->approbation_production,
-                    'couleur'         => $p->couleur_carte,
-                ],
-            ])
+            'features' => $parcelles->map(function(Parcelle $p) {
+                // Normalisation de la géométrie
+                $geometry = $p->contour;
+                
+                // Si c'est un tableau de points (ancien format ou format Identification)
+                if (is_array($geometry) && !isset($geometry['type'])) {
+                    $coords = [];
+                    foreach ($geometry as $point) {
+                        if (isset($point['lng']) || isset($point['longitude'])) {
+                            $coords[] = [
+                                (float)($point['lng'] ?? $point['longitude'] ?? 0),
+                                (float)($point['lat'] ?? $point['latitude'] ?? 0)
+                            ];
+                        } elseif (is_array($point) && count($point) >= 2) {
+                            $coords[] = [(float)$point[0], (float)$point[1]];
+                        }
+                    }
+                    
+                    if (count($coords) > 2) {
+                        if ($coords[0] !== end($coords)) {
+                            $coords[] = $coords[0];
+                        }
+                        $geometry = [
+                            'type' => 'Polygon',
+                            'coordinates' => [$coords]
+                        ];
+                    } else {
+                        return null;
+                    }
+                }
+
+                if (!$p->producteur) return null;
+
+                return [
+                    'type'       => 'Feature',
+                    'id'         => $p->id,
+                    'geometry'   => $geometry,
+                    'properties' => [
+                        'id'              => $p->id,
+                        'indice'          => $p->indice,
+                        'producteur'      => "{$p->producteur->nom} {$p->producteur->prenom}",
+                        'code_producteur' => $p->producteur->code,
+                        'village'         => $p->village?->nom,
+                        'culture'         => $p->culture?->nom,
+                        'superficie'      => $p->superficie,
+                        'superficie_bio'  => $p->superficie_bio,
+                        'bio'             => $p->bio,
+                        'approbation'     => $p->approbation_production,
+                        'couleur'         => $p->couleur_carte,
+                    ],
+                ];
+            })->filter()->values()
         ]);
     }
 

@@ -13,9 +13,14 @@ class ProducteurApiController extends Controller
     {
         $query = Producteur::with(['zone', 'village', 'organisation', 'controleur']);
         
-        // ISOLATION : Un contrôleur ne voit que ses propres producteurs
-        if ($request->user()) {
-            $query->where('controleur_id', $request->user()->id);
+        // ISOLATION : Un contrôleur voit ses propres producteurs OU ceux de sa zone assignée
+        if ($user = $request->user()) {
+            $query->where(function($q) use ($user) {
+                $q->where('controleur_id', $user->id);
+                if ($user->zone_id) {
+                    $q->orWhere('zone_id', $user->zone_id);
+                }
+            });
         }
 
         if ($request->has('zone_id')) {

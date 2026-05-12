@@ -13,6 +13,18 @@ class ControleApiController extends Controller
     {
         $query = Controle::with(['parcelle', 'producteur', 'culture', 'controleur']);
         
+        // ISOLATION : Ses propres contrôles OU ceux des producteurs de sa zone
+        if ($user = $request->user()) {
+            $query->where(function($q) use ($user) {
+                $q->where('controleur_id', $user->id);
+                if ($user->zone_id) {
+                    $q->orWhereHas('producteur', function($pq) use ($user) {
+                        $pq->where('zone_id', $user->zone_id);
+                    });
+                }
+            });
+        }
+
         if ($request->has('parcelle_id')) {
             $query->where('parcelle_id', $request->parcelle_id);
         }

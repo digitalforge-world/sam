@@ -13,9 +13,14 @@ class OrganisationPaysanneApiController extends Controller
     {
         $query = OrganisationPaysanne::with(['zone', 'village', 'controleur']);
         
-        // ISOLATION : Un contrôleur ne voit que ses propres organisations
-        if ($request->user()) {
-            $query->where('controleur_id', $request->user()->id);
+        // ISOLATION : Un contrôleur voit ses propres organisations OU celles de sa zone assignée
+        if ($user = $request->user()) {
+            $query->where(function($q) use ($user) {
+                $q->where('controleur_id', $user->id);
+                if ($user->zone_id) {
+                    $q->orWhere('zone_id', $user->zone_id);
+                }
+            });
         }
 
         if ($request->has('zone_id')) {

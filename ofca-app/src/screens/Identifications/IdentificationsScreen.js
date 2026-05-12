@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet,
     ScrollView, Alert, ActivityIndicator, Switch, Modal, Image
@@ -21,8 +22,8 @@ import LoadingScreen from '../../components/LoadingScreen';
 // ─────────────────────────────────────────────────────────────
 function buildLeafletHTML(center, points, reviewMode = false) {
     const ptsJSON = JSON.stringify(points);
-    const centerLat = center?.latitude ?? 6.1319;
-    const centerLng = center?.longitude ?? 1.2228;
+    const centerLat = center?.latitude ?? 6.1807829;
+    const centerLng = center?.longitude ?? 1.2399676;
 
     return `<!DOCTYPE html>
 <html>
@@ -168,17 +169,13 @@ const tilesExist = async () => (await FileSystem.getInfoAsync(TILES_DIR)).exists
 // ─────────────────────────────────────────────────────────────
 // DateInput
 // ─────────────────────────────────────────────────────────────
-const DateInput = ({ label, value, onChange }) => (
-    <View style={styles.dateRow}>
-        <TextInput
-            style={styles.dateInput}
-            value={value}
-            onChangeText={onChange}
-            placeholder={label}
-            placeholderTextColor={COLORS.textDisabled}
-        />
+const DateInput = ({ label, value, onPress }) => (
+    <TouchableOpacity style={styles.dateRow} onPress={onPress}>
+        <Text style={[styles.dateInput, !value && { color: COLORS.textDisabled }, { textAlignVertical: 'center', paddingTop: 14 }]}>
+            {value || label}
+        </Text>
         <MaterialCommunityIcons name="calendar-month-outline" size={22} color={COLORS.textDisabled} style={styles.dateIcon} />
-    </View>
+    </TouchableOpacity>
 );
 
 // ─────────────────────────────────────────────────────────────
@@ -222,6 +219,10 @@ export default function IdentificationsScreen({ navigation }) {
     const [dateSarclage2, setDateSarclage2] = useState('');
     const [dateFertilisation, setDateFertilisation] = useState('');
     const [dateRecolte, setDateRecolte] = useState('');
+    const [dateTif, setDateTif] = useState('');
+    const [produitTif, setProduitTif] = useState('');
+    const [showPicker, setShowPicker] = useState(false);
+    const [pickerField, setPickerField] = useState('');
 
     const [arbres, setArbres] = useState([]);
     const [currentArbreNom, setCurrentArbreNom] = useState('');
@@ -242,7 +243,7 @@ export default function IdentificationsScreen({ navigation }) {
     const refSignature = useRef();
 
     const [mapVisible, setMapVisible] = useState(false);
-    const [mapCenter, setMapCenter] = useState({ latitude: 6.1319, longitude: 1.2228 });
+    const [mapCenter, setMapCenter] = useState({ latitude: 6.1807829, longitude: 1.2399676 });
     const [polygonCoords, setPolygonCoords] = useState([]);
     const [coordonnees, setCoordonnees] = useState(null);
     const [reviewMode, setReviewMode] = useState(false);
@@ -251,7 +252,7 @@ export default function IdentificationsScreen({ navigation }) {
     const [offlineReady, setOfflineReady] = useState(false);
     const [downloadingTiles, setDownloadingTiles] = useState(false);
     const [downloadProgress, setDownloadProgress] = useState(0);
-    
+
     // Etats pour l'Historique
     const [historique, setHistorique] = useState([]);
     const [showHistModal, setShowHistModal] = useState(false);
@@ -437,7 +438,7 @@ export default function IdentificationsScreen({ navigation }) {
             Alert.alert('Erreur', 'Veuillez saisir l\'année et la culture.');
             return;
         }
-        
+
         const chems = [];
         if (histChemicals.herbicides) chems.push('Herbicides');
         if (histChemicals.engrais) chems.push('Engrais chimique');
@@ -451,7 +452,7 @@ export default function IdentificationsScreen({ navigation }) {
         };
 
         setHistorique(prev => [...prev, newEntry]);
-        
+
         // Reset
         setHistAnnee('');
         setHistCrop('');
@@ -462,6 +463,41 @@ export default function IdentificationsScreen({ navigation }) {
 
     const removeHistorique = (id) => {
         setHistorique(prev => prev.filter(h => h.id !== id));
+    };
+
+    const onPickerChange = (event, selectedDate) => {
+        setShowPicker(false);
+        if (selectedDate) {
+            const currentDate = selectedDate.toISOString().split('T')[0];
+            switch (pickerField) {
+                case 'datePrepSol': setDatePrepSol(currentDate); break;
+                case 'dateSemis': setDateSemis(currentDate); break;
+                case 'dateSarclage1': setDateSarclage1(currentDate); break;
+                case 'dateSarclage2': setDateSarclage2(currentDate); break;
+                case 'dateFertilisation': setDateFertilisation(currentDate); break;
+                case 'dateTif': setDateTif(currentDate); break;
+                case 'dateRecolte': setDateRecolte(currentDate); break;
+            }
+        }
+    };
+
+    const openPicker = (field) => {
+        setPickerField(field);
+        setShowPicker(true);
+    };
+
+    const getPickerDate = () => {
+        let val = '';
+        switch (pickerField) {
+            case 'datePrepSol': val = datePrepSol; break;
+            case 'dateSemis': val = dateSemis; break;
+            case 'dateSarclage1': val = dateSarclage1; break;
+            case 'dateSarclage2': val = dateSarclage2; break;
+            case 'dateFertilisation': val = dateFertilisation; break;
+            case 'dateTif': val = dateTif; break;
+            case 'dateRecolte': val = dateRecolte; break;
+        }
+        return val ? new Date(val) : new Date();
     };
 
     // ── SUBMIT ────────────────────────────────────────────────
@@ -503,6 +539,8 @@ export default function IdentificationsScreen({ navigation }) {
             date_sarclage_1: dateSarclage1 || null,
             date_sarclage_2: dateSarclage2 || null,
             date_fertilisation: dateFertilisation || null,
+            date_tif: dateTif || null,
+            produit_tif: produitTif || null,
             date_recolte: dateRecolte || null,
             arbres,
             niveau_pente: niveauPente,
@@ -530,9 +568,9 @@ export default function IdentificationsScreen({ navigation }) {
         } catch (apiError) {
             const errorMsg = apiError.response?.data?.message || 'Erreur réseau/serveur';
             const label = `Identification: ${nomFinal}`;
-            
+
             await addToQueue('POST', '/identifications', payload, label);
-            
+
             Alert.alert('⚠️ Erreur d\'envoi direct',
                 `Enregistré localement suite à une erreur: ${errorMsg}. \n\nVeuillez synchroniser depuis l'écran Accueil > Sync.`,
                 [{ text: 'Compris', onPress: () => navigation.goBack() }]);
@@ -619,7 +657,7 @@ export default function IdentificationsScreen({ navigation }) {
                             <MaterialCommunityIcons name="plus-box-outline" size={32} color={COLORS.identification} />
                         </TouchableOpacity>
                     </View>
-                    
+
                     {historique.length === 0 ? (
                         <Text style={styles.emptyText}>Aucun historique ajouté</Text>
                     ) : (
@@ -676,12 +714,24 @@ export default function IdentificationsScreen({ navigation }) {
                     <Text style={styles.sectionBigTitle}>CALENDRIER DES OPÉRATIONS CULTURALES, CULTURES À CERTIFIER</Text>
                 </View>
                 <View style={styles.calendarCard}>
-                    <DateInput label="Préparation du sol/labour" value={datePrepSol} onChange={setDatePrepSol} />
-                    <DateInput label="Semis" value={dateSemis} onChange={setDateSemis} />
-                    <DateInput label="1er Sarclage" value={dateSarclage1} onChange={setDateSarclage1} />
-                    <DateInput label="2eme Sarclage" value={dateSarclage2} onChange={setDateSarclage2} />
-                    <DateInput label="Apport fumier/Engrais organique" value={dateFertilisation} onChange={setDateFertilisation} />
-                    <DateInput label="Récolte" value={dateRecolte} onChange={setDateRecolte} />
+                    <DateInput label="Préparation du sol/labour" value={datePrepSol} onPress={() => openPicker('datePrepSol')} />
+                    <DateInput label="Semis" value={dateSemis} onPress={() => openPicker('dateSemis')} />
+                    <DateInput label="1er Sarclage" value={dateSarclage1} onPress={() => openPicker('dateSarclage1')} />
+                    <DateInput label="2eme Sarclage" value={dateSarclage2} onPress={() => openPicker('dateSarclage2')} />
+                    <DateInput label="Apport fumier/Engrais organique" value={dateFertilisation} onPress={() => openPicker('dateFertilisation')} />
+
+                    <DateInput label="Traitement d'induction florale (TIF)" value={dateTif} onPress={() => openPicker('dateTif')} />
+                    <View style={styles.inputWrapper}>
+                        <TextInput
+                            style={styles.textInput}
+                            value={produitTif}
+                            onChangeText={setProduitTif}
+                            placeholder="Produit utilisé (TIF)"
+                            placeholderTextColor={COLORS.textDisabled}
+                        />
+                    </View>
+
+                    <DateInput label="Récolte" value={dateRecolte} onPress={() => openPicker('dateRecolte')} />
                 </View>
 
                 {/* ── Arbres ──────────────────────────────── */}
@@ -725,9 +775,10 @@ export default function IdentificationsScreen({ navigation }) {
                     </View>
                     {renderPicker('Cultures à proximité', culturesProximite, setCulturesProximite, cultures, 'nom', 'id')}
                     {renderPicker('Rencontre avec', rencontreAvec, setRencontreAvec, [
-                        { label: 'Producteur', value: 'PRODUCTEUR' },
-                        { label: 'Responsable', value: 'RESPONSABLE' },
-                        { label: 'Les deux', value: 'BOTH' },
+                        { label: 'Producteur', value: 'Producteur' },
+                        { label: 'Femme du producteur', value: 'Femme du producteur' },
+                        { label: 'Un enfant du producteur', value: 'Un enfant du producteur' },
+                        { label: 'Membre de l\'OP', value: 'Membre de l\'OP' },
                     ], 'label', 'value')}
                 </View>
 
@@ -919,12 +970,12 @@ export default function IdentificationsScreen({ navigation }) {
                         </View>
 
                         <View style={styles.pickerWrapper}>
-                            <Picker 
-                                selectedValue={histCrop} 
+                            <Picker
+                                selectedValue={histCrop}
                                 onValueChange={(val, idx) => {
                                     setHistCrop(val);
-                                    if(idx > 0) setHistCropsLabel(cultures[idx-1].nom);
-                                }} 
+                                    if (idx > 0) setHistCropsLabel(cultures[idx - 1].nom);
+                                }}
                                 style={styles.picker}
                             >
                                 <Picker.Item label="Crops" value="" color={COLORS.textDisabled} />
@@ -934,12 +985,12 @@ export default function IdentificationsScreen({ navigation }) {
                             </Picker>
                         </View>
 
-                        <TouchableOpacity 
-                            style={styles.customSelect} 
+                        <TouchableOpacity
+                            style={styles.customSelect}
                             onPress={() => setShowChemModal(true)}
                         >
-                            <Text style={[styles.selectText, (histChemicals.herbicides || histChemicals.engrais) ? {} : {color: COLORS.textDisabled}]}>
-                                {(histChemicals.herbicides || histChemicals.engrais) 
+                            <Text style={[styles.selectText, (histChemicals.herbicides || histChemicals.engrais) ? {} : { color: COLORS.textDisabled }]}>
+                                {(histChemicals.herbicides || histChemicals.engrais)
                                     ? `${histChemicals.herbicides ? 'Herbicides' : ''}${histChemicals.herbicides && histChemicals.engrais ? ', ' : ''}${histChemicals.engrais ? 'Engrais chimique' : ''}`
                                     : 'Chemicals'}
                             </Text>
@@ -958,28 +1009,28 @@ export default function IdentificationsScreen({ navigation }) {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalSmallContent}>
                         <Text style={styles.modalSubTitle}>Sélectionnner Chemicals</Text>
-                        
-                        <TouchableOpacity 
-                            style={styles.checkRow} 
-                            onPress={() => setHistChemicals(prev => ({...prev, herbicides: !prev.herbicides}))}
+
+                        <TouchableOpacity
+                            style={styles.checkRow}
+                            onPress={() => setHistChemicals(prev => ({ ...prev, herbicides: !prev.herbicides }))}
                         >
                             <Text style={styles.checkLabel}>Herbicides</Text>
-                            <MaterialCommunityIcons 
-                                name={histChemicals.herbicides ? "checkbox-marked" : "checkbox-blank-outline"} 
-                                size={24} 
-                                color={histChemicals.herbicides ? COLORS.identification : "#666"} 
+                            <MaterialCommunityIcons
+                                name={histChemicals.herbicides ? "checkbox-marked" : "checkbox-blank-outline"}
+                                size={24}
+                                color={histChemicals.herbicides ? COLORS.identification : "#666"}
                             />
                         </TouchableOpacity>
 
-                        <TouchableOpacity 
-                            style={styles.checkRow} 
-                            onPress={() => setHistChemicals(prev => ({...prev, engrais: !prev.engrais}))}
+                        <TouchableOpacity
+                            style={styles.checkRow}
+                            onPress={() => setHistChemicals(prev => ({ ...prev, engrais: !prev.engrais }))}
                         >
                             <Text style={styles.checkLabel}>Engrais chimique</Text>
-                            <MaterialCommunityIcons 
-                                name={histChemicals.engrais ? "checkbox-marked" : "checkbox-blank-outline"} 
-                                size={24} 
-                                color={histChemicals.engrais ? COLORS.identification : "#666"} 
+                            <MaterialCommunityIcons
+                                name={histChemicals.engrais ? "checkbox-marked" : "checkbox-blank-outline"}
+                                size={24}
+                                color={histChemicals.engrais ? COLORS.identification : "#666"}
                             />
                         </TouchableOpacity>
 
@@ -1061,6 +1112,14 @@ export default function IdentificationsScreen({ navigation }) {
                     </View>
                     <Text style={styles.downloadPct}>{downloadProgress}%</Text>
                 </View>
+            )}
+            {showPicker && (
+                <DateTimePicker
+                    value={getPickerDate()}
+                    mode="date"
+                    display="default"
+                    onChange={onPickerChange}
+                />
             )}
         </View>
     );
@@ -1237,7 +1296,7 @@ const styles = StyleSheet.create({
     },
     modalTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textPrimary },
     modalSubTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 16 },
-    
+
     customSelect: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -1250,7 +1309,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff'
     },
     selectText: { flex: 1, fontSize: 15, color: '#111' },
-    
+
     checkRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -1260,7 +1319,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#F0F0F0'
     },
     checkLabel: { fontSize: 16, color: COLORS.textPrimary },
-    
+
     okBtn: {
         backgroundColor: COLORS.identification,
         paddingVertical: 12,
@@ -1270,7 +1329,7 @@ const styles = StyleSheet.create({
         marginTop: 24
     },
     okBtnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
-    
+
     modalSubmitBtn: {
         backgroundColor: COLORS.identification,
         height: 56,

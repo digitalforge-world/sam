@@ -13,9 +13,16 @@ class IdentificationApiController extends Controller
     {
         $query = Identification::with(['producteur', 'controleur']);
         
-        // ISOLATION : Un contrôleur ne voit que ses propres dossiers
-        if ($request->user()) {
-            $query->where('controleur_id', $request->user()->id);
+        // ISOLATION : Ses propres identifications OU celles des producteurs de sa zone
+        if ($user = $request->user()) {
+            $query->where(function($q) use ($user) {
+                $q->where('controleur_id', $user->id);
+                if ($user->zone_id) {
+                    $q->orWhereHas('producteur', function($pq) use ($user) {
+                        $pq->where('zone_id', $user->zone_id);
+                    });
+                }
+            });
         }
 
         if ($request->has('producteur_id')) {

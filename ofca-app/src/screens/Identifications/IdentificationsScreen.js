@@ -1,4 +1,4 @@
-﻿import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet,
@@ -17,9 +17,9 @@ import apiClient, { addToQueue } from '../../api/client';
 import { COLORS, RADIUS, SHADOWS, SPACING } from '../../theme';
 import LoadingScreen from '../../components/LoadingScreen';
 
-// u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}
-// LEAFLET MAP HTML - CartoDB tiles (pas de blocage Access)
-// u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}u{2500}
+// ─────────────────────────────────────────────────────────────
+// LEAFLET MAP HTML — CartoDB tiles (pas de blocage Access)
+// ─────────────────────────────────────────────────────────────
 function buildLeafletHTML(center, points, reviewMode = false) {
     const ptsJSON = JSON.stringify(points);
     const centerLat = center?.latitude ?? 6.1807829;
@@ -31,7 +31,7 @@ function buildLeafletHTML(center, points, reviewMode = false) {
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
   <meta name="referrer" content="origin">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{width:100%;height:100%;overflow:hidden}
@@ -46,7 +46,7 @@ function buildLeafletHTML(center, points, reviewMode = false) {
   var linked=false;
   var map=L.map('map',{zoomControl:true,attributionControl:false}).setView([${centerLat},${centerLng}],17);
 
-  // âœ… CartoDB â€” pas de blocage Access Blocked
+  // CartoDB — pas de blocage Access Blocked
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
     maxZoom:19,
     subdomains:'abcd'
@@ -72,7 +72,7 @@ function buildLeafletHTML(center, points, reviewMode = false) {
           '<div style="text-align:center;min-width:120px;">'
           +'<b>Point '+(i+1)+'</b><br>'
           +'<small>'+pt.latitude.toFixed(6)+', '+pt.longitude.toFixed(6)+'</small><br><br>'
-          +'<button class="delete-btn" onclick="deletePoint('+idx+')">âœ• Supprimer</button>'
+          +'<button class="delete-btn" onclick="deletePoint('+idx+')">Supprimer</button>'
           +'</div>'
         );
         m.on('dragend',function(e){
@@ -89,33 +89,25 @@ function buildLeafletHTML(center, points, reviewMode = false) {
         m.addTo(map); markers.push(m);
       }
     });
-    // En mode review OU si les points ont dÃ©jÃ  Ã©tÃ© reliÃ©s par le contrÃ´leur, on affiche le polygone
-    if(linked || reviewMode){
-      if(pts.length>=2){
-        var ll=pts.map(function(pt){return[pt.latitude,pt.longitude];});
-        polygon=L.polygon(ll,{
-          color:reviewMode?'#FF6F00':'#27AE60',
-          weight:2,
-          fillColor:reviewMode?'#FF6F00':'#27AE60',
-          fillOpacity:0.18
-        }).addTo(map);
-        if(reviewMode&&pts.length>=3){map.fitBounds(polygon.getBounds(),{padding:[40,40]});}
-      }
+    if((linked||reviewMode)&&pts.length>=2){
+      var ll=pts.map(function(pt){return[pt.latitude,pt.longitude];});
+      polygon=L.polygon(ll,{
+        color:reviewMode?'#FF6F00':'#27AE60',
+        weight:2,
+        fillColor:reviewMode?'#FF6F00':'#27AE60',
+        fillOpacity:0.18
+      }).addTo(map);
+      if(reviewMode&&pts.length>=3){map.fitBounds(polygon.getBounds(),{padding:[40,40]});}
     }
   }
 
-  // DÃ©clenchÃ© par le bouton âš¡ depuis React Native
   function linkPoints(){
-    if(pts.length < 3){ return; }
+    if(pts.length<3){return;}
     linked=true;
     if(polygon){map.removeLayer(polygon);polygon=null;}
     var ll=pts.map(function(pt){return[pt.latitude,pt.longitude];});
-    polygon=L.polygon(ll,{
-      color:'#27AE60',weight:2.5,
-      fillColor:'#27AE60',fillOpacity:0.22
-    }).addTo(map);
+    polygon=L.polygon(ll,{color:'#27AE60',weight:2.5,fillColor:'#27AE60',fillOpacity:0.22}).addTo(map);
     map.fitBounds(polygon.getBounds(),{padding:[40,40]});
-    // Notifier React Native que les points ont Ã©tÃ© reliÃ©s
     window.ReactNativeWebView.postMessage(JSON.stringify({type:'linked'}));
   }
 
@@ -145,13 +137,14 @@ function buildLeafletHTML(center, points, reviewMode = false) {
       }
     }catch(e){}
   });
-<\/script>
+</script>
 </body>
 </html>`;
 }
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+// ─────────────────────────────────────────────────────────────
 // OFFLINE TILES
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 const TILES_DIR = FileSystem.documentDirectory + 'osm_tiles/';
 const latLonToTile = (lat, lon, z) => ({
     x: Math.floor(((lon + 180) / 360) * Math.pow(2, z)),
@@ -178,15 +171,15 @@ const downloadTilesForArea = async (coords, onProgress) => {
 };
 const tilesExist = async () => (await FileSystem.getInfoAsync(TILES_DIR)).exists;
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 // STORAGE
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 // Plus de saveParcelle ici, on utilise addToQueue de l'API Client
 
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 // DateInput
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 const DateInput = ({ label, value, onPress }) => (
     <TouchableOpacity style={styles.dateRow} onPress={onPress}>
         <Text style={[styles.dateInput, !value && { color: COLORS.textDisabled }, { textAlignVertical: 'center', paddingTop: 14 }]}>
@@ -196,9 +189,9 @@ const DateInput = ({ label, value, onPress }) => (
     </TouchableOpacity>
 );
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 // MAIN SCREEN
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 export default function IdentificationsScreen({ navigation }) {
 
     const [villages, setVillages] = useState([]);
@@ -266,8 +259,8 @@ export default function IdentificationsScreen({ navigation }) {
     const [coordonnees, setCoordonnees] = useState(null);
     const [reviewMode, setReviewMode] = useState(false);
     const [polygonLinked, setPolygonLinked] = useState(false);
-    const webViewRef = useRef(null);
     const [mapHTML, setMapHTML] = useState('');
+    const webViewRef = useRef(null);
 
     const [offlineReady, setOfflineReady] = useState(false);
     const [downloadingTiles, setDownloadingTiles] = useState(false);
@@ -296,11 +289,11 @@ export default function IdentificationsScreen({ navigation }) {
                 const oldData = JSON.parse(raw);
                 if (oldData.length > 0) {
                     for (const item of oldData) {
-                        const label = `RÃ©cupÃ©rÃ©: ${item.nom || 'Sans nom'}`;
+                        const label = `Récupéré: ${item.nom || 'Sans nom'}`;
                         await addToQueue('POST', '/identifications', item.payload, label);
                     }
                     await AsyncStorage.removeItem(PARCELLES_KEY);
-                    Alert.alert('ðŸ“¦ RÃ©cupÃ©ration', 'D\'anciennes donnÃ©es ont Ã©tÃ© dÃ©placÃ©es vers la file de synchronisation.');
+                    Alert.alert('📦 Récupération', 'D\'anciennes données ont été déplacées vers la file de synchronisation.');
                 }
             }
         } catch (e) { console.log('Recovery error:', e); }
@@ -320,7 +313,7 @@ export default function IdentificationsScreen({ navigation }) {
             setProducteurs(prodRes.data.data ?? prodRes.data);
             setCultures(cultRes.data.data ?? cultRes.data);
         } catch {
-            Alert.alert('Erreur', 'Impossible de charger les dÃ©pendances.');
+            Alert.alert('Erreur', 'Impossible de charger les dépendances.');
         } finally {
             setLoadingData(false);
         }
@@ -328,7 +321,7 @@ export default function IdentificationsScreen({ navigation }) {
 
     const takePhoto = async () => {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
-        if (status !== 'granted') { Alert.alert('Permission', 'La camÃ©ra est nÃ©cessaire.'); return; }
+        if (status !== 'granted') { Alert.alert('Permission', 'La caméra est nécessaire.'); return; }
         const result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true, aspect: [4, 3], quality: 0.7,
@@ -342,30 +335,25 @@ export default function IdentificationsScreen({ navigation }) {
     const handleSignature = (sig) => { setSignatureURI(sig); setSignatureVisible(false); };
     const clearSignature = () => { refSignature.current?.clearSignature(); setSignatureURI(null); };
 
-    // â”€â”€ Carte â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Carte ─────────────────────────────────────────────────
     const openMap = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') { Alert.alert('Permission', 'Localisation requise.'); return; }
-        
         let center = { latitude: 6.1807829, longitude: 1.2399676 };
         try {
             const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
             center = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
             setMapCenter(center);
         } catch (e) { }
-
-        // S'il y a dÃ©jÃ  des coordonnÃ©es enregistrÃ©es, on les charge pour pouvoir les modifier, sinon on dÃ©marre Ã  vide
+        // Charger les coordonnees existantes si deja tracees
         const activeCoords = coordonnees && coordonnees.length > 0 ? coordonnees : [];
         if (activeCoords.length > 0) {
             center = { latitude: activeCoords[0].latitude, longitude: activeCoords[0].longitude };
             setMapCenter(center);
         }
         setPolygonCoords(activeCoords);
-
-        // On gÃ©nÃ¨re le HTML statique une seule fois Ã  l'ouverture pour Ã©viter les rechargements intempestifs du WebView
-        const html = buildLeafletHTML(center, activeCoords, false);
-        setMapHTML(html);
-
+        // Generer le HTML statique une seule fois a l'ouverture
+        setMapHTML(buildLeafletHTML(center, activeCoords, false));
         setReviewMode(false);
         setPolygonLinked(false);
         setMapVisible(true);
@@ -374,11 +362,8 @@ export default function IdentificationsScreen({ navigation }) {
     const addPointToPolygon = (coord) => {
         setPolygonCoords(prev => {
             const newCoords = [...prev, coord];
-            if (newCoords.length >= 3) setSuperficie(calculateAreaInHectares(newCoords));
-            // Appel direct Ã  redraw() sans passer par window.dispatchEvent qui pose problÃ¨me sous Android
-            webViewRef.current?.injectJavaScript(`
-                redraw(${JSON.stringify(newCoords)}); true;
-            `);
+            // Appel direct a redraw() — plus fiable que window.dispatchEvent
+            webViewRef.current?.injectJavaScript(`redraw(${JSON.stringify(newCoords)}); true;`);
             return newCoords;
         });
     };
@@ -386,25 +371,9 @@ export default function IdentificationsScreen({ navigation }) {
     const captureUserLocationPoint = async () => {
         try {
             const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest });
-            const coord = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
-            addPointToPolygon(coord);
-            webViewRef.current?.injectJavaScript(`
-                map.setView([${loc.coords.latitude}, ${loc.coords.longitude}], 17); true;
-            `);
+            addPointToPolygon({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+            webViewRef.current?.injectJavaScript(`map.setView([${loc.coords.latitude},${loc.coords.longitude}],17); true;`);
         } catch { Alert.alert('Erreur GPS', 'Signal trop faible.'); }
-    };
-
-    const goToReviewMode = () => {
-        if (polygonCoords.length < 3) { Alert.alert('Insuffisant', 'Ajoutez au moins 3 points.'); return; }
-        setReviewMode(true);
-        webViewRef.current?.injectJavaScript(`
-            reviewMode=true; linked=true; redraw(pts);
-            if (pts.length >= 2) {
-                var bounds = L.latLngBounds(pts.map(function(p){return [p.latitude, p.longitude];}));
-                map.fitBounds(bounds, {padding: [40, 40]});
-            }
-            true;
-        `);
     };
 
     const linkPolygon = () => {
@@ -415,6 +384,12 @@ export default function IdentificationsScreen({ navigation }) {
         setPolygonLinked(true);
         setSuperficie(calculateAreaInHectares(polygonCoords));
         webViewRef.current?.injectJavaScript(`linkPoints(); true;`);
+    };
+
+    const goToReviewMode = () => {
+        if (polygonCoords.length < 3) { Alert.alert('Insuffisant', 'Ajoutez au moins 3 points.'); return; }
+        setReviewMode(true);
+        webViewRef.current?.injectJavaScript(`reviewMode=true; linked=true; redraw(pts); if(pts.length>=2){var b=L.latLngBounds(pts.map(function(p){return[p.latitude,p.longitude];}));map.fitBounds(b,{padding:[40,40]});} true;`);
     };
 
     const backToDrawMode = () => {
@@ -445,9 +420,9 @@ export default function IdentificationsScreen({ navigation }) {
         setCoordonnees(polygonCoords);
         setMapVisible(false);
         setReviewMode(false);
-        Alert.alert('ðŸ“´ Cartes hors ligne', 'TÃ©lÃ©charger les cartes de cette zone ?', [
+        Alert.alert('📴 Cartes hors ligne', 'Télécharger les cartes de cette zone ?', [
             { text: 'Non merci' },
-            { text: 'TÃ©lÃ©charger', onPress: () => handleDownloadTiles(polygonCoords) },
+            { text: 'Télécharger', onPress: () => handleDownloadTiles(polygonCoords) },
         ]);
     };
 
@@ -467,8 +442,8 @@ export default function IdentificationsScreen({ navigation }) {
         try {
             await downloadTilesForArea(coords, setDownloadProgress);
             setOfflineReady(true);
-            Alert.alert('âœ… TerminÃ©', 'Cartes disponibles hors ligne.');
-        } catch { Alert.alert('Erreur', 'TÃ©lÃ©chargement Ã©chouÃ©.'); }
+            Alert.alert('✅ Terminé', 'Cartes disponibles hors ligne.');
+        } catch { Alert.alert('Erreur', 'Téléchargement échoué.'); }
         finally { setDownloadingTiles(false); }
     };
 
@@ -481,7 +456,7 @@ export default function IdentificationsScreen({ navigation }) {
 
     const handleAddHistorique = () => {
         if (!histAnnee.trim() || !histCrop) {
-            Alert.alert('Erreur', 'Veuillez saisir l\'annÃ©e et la culture.');
+            Alert.alert('Erreur', 'Veuillez saisir l\'année et la culture.');
             return;
         }
 
@@ -546,10 +521,10 @@ export default function IdentificationsScreen({ navigation }) {
         return val ? new Date(val) : new Date();
     };
 
-    // â”€â”€ SUBMIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── SUBMIT ────────────────────────────────────────────────
     const handleSubmit = async () => {
         if (!selectedProducteur) {
-            Alert.alert('Champ obligatoire', 'Veuillez sÃ©lectionner un producteur.');
+            Alert.alert('Champ obligatoire', 'Veuillez sélectionner un producteur.');
             return;
         }
         const nomFinal = nomParcelle.trim() ||
@@ -604,21 +579,21 @@ export default function IdentificationsScreen({ navigation }) {
         try {
             const res = await apiClient.post('/identifications', payload);
             if (res.data?.offline || res.data?.queued) {
-                Alert.alert('ðŸ“´ Mis en attente',
-                    `"${nomFinal}" a Ã©tÃ© ajoutÃ© Ã  la file de synchronisation (pas de connexion internet).`,
+                Alert.alert('📴 Mis en attente',
+                    `"${nomFinal}" a été ajouté à la file de synchronisation (pas de connexion internet).`,
                     [{ text: 'OK', onPress: () => navigation.goBack() }]);
             } else {
-                Alert.alert('SuccÃ¨s âœ…', 'Identification enregistrÃ©e !');
+                Alert.alert('Succès ✅', 'Identification enregistrée !');
                 navigation.goBack();
             }
         } catch (apiError) {
-            const errorMsg = apiError.response?.data?.message || 'Erreur rÃ©seau/serveur';
+            const errorMsg = apiError.response?.data?.message || 'Erreur réseau/serveur';
             const label = `Identification: ${nomFinal}`;
 
             await addToQueue('POST', '/identifications', payload, label);
 
-            Alert.alert('âš ï¸ Erreur d\'envoi direct',
-                `EnregistrÃ© localement suite Ã  une erreur: ${errorMsg}. \n\nVeuillez synchroniser depuis l'Ã©cran Accueil > Sync.`,
+            Alert.alert('⚠️ Erreur d\'envoi direct',
+                `Enregistré localement suite à une erreur: ${errorMsg}. \n\nVeuillez synchroniser depuis l'écran Accueil > Sync.`,
                 [{ text: 'Compris', onPress: () => navigation.goBack() }]);
         } finally { setSubmitting(false); }
     };
@@ -652,7 +627,7 @@ export default function IdentificationsScreen({ navigation }) {
         <View style={styles.container}>
             <ScrollView style={styles.scrollArea} showsVerticalScrollIndicator={false}>
 
-                {/* â”€â”€ Infos gÃ©nÃ©rales â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Infos générales ─────────────────────── */}
                 <View style={styles.card}>
                     {renderPicker('Village', selectedVillage, setSelectedVillage, villages, 'nom', 'id')}
                     {renderPicker('Organisation paysanne', selectedOrganisation, setSelectedOrganisation, organisations, 'nom', 'id')}
@@ -669,7 +644,7 @@ export default function IdentificationsScreen({ navigation }) {
                         />
                     </View>
 
-                    {renderPicker('Culture Ã  certifier', selectedCulture, setSelectedCulture, cultures, 'nom', 'id')}
+                    {renderPicker('Culture à certifier', selectedCulture, setSelectedCulture, cultures, 'nom', 'id')}
                     {renderPicker('Statut', statutProducteur, setStatutProducteur,
                         [{ label: 'Nouveau', value: 'Nouveau' }, { label: 'Ancien', value: 'Ancien' }], 'label', 'value')}
 
@@ -686,7 +661,7 @@ export default function IdentificationsScreen({ navigation }) {
                     {coordonnees && (
                         <View style={styles.coordsBadge}>
                             <MaterialCommunityIcons name="map-check" size={14} color="#2E7D32" />
-                            <Text style={styles.coordsBadgeText}>{coordonnees.length} points GPS â€” {superficie} ha</Text>
+                            <Text style={styles.coordsBadgeText}>{coordonnees.length} points GPS — {superficie} ha</Text>
                             <TouchableOpacity onPress={openMap} style={styles.editCoordsBtn}>
                                 <MaterialCommunityIcons name="pencil" size={14} color={COLORS.identification} />
                                 <Text style={styles.editCoordsText}>Modifier</Text>
@@ -695,7 +670,7 @@ export default function IdentificationsScreen({ navigation }) {
                     )}
                 </View>
 
-                {/* â”€â”€ Historique â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Historique ──────────────────────────── */}
                 <View style={styles.sectionBlock}>
                     <View style={styles.sectionRow}>
                         <Text style={styles.sectionBigTitle}>Historique</Text>
@@ -705,12 +680,12 @@ export default function IdentificationsScreen({ navigation }) {
                     </View>
 
                     {historique.length === 0 ? (
-                        <Text style={styles.emptyText}>Aucun historique ajoutÃ©</Text>
+                        <Text style={styles.emptyText}>Aucun historique ajouté</Text>
                     ) : (
                         historique.map((h) => (
                             <View key={h.id} style={styles.histItemCard}>
                                 <View style={styles.histItemInfo}>
-                                    <Text style={styles.histItemTitle}>{h.annee} â€” {h.cropLabel || 'Culture'}</Text>
+                                    <Text style={styles.histItemTitle}>{h.annee} — {h.cropLabel || 'Culture'}</Text>
                                     <Text style={styles.histItemSub}>{h.chemicals.length > 0 ? h.chemicals.join(', ') : 'Aucun produit chimique'}</Text>
                                 </View>
                                 <TouchableOpacity onPress={() => removeHistorique(h.id)}>
@@ -721,28 +696,28 @@ export default function IdentificationsScreen({ navigation }) {
                     )}
                 </View>
 
-                {/* â”€â”€ Agriculture Bio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Agriculture Bio ─────────────────────── */}
                 <View style={styles.sectionBlock}>
-                    <Text style={styles.sectionBigTitle}>COMPRÃ‰HENSION DE L'AGRICULTURE BIOLOGIQUE ET LA GESTION DE L'ENVIRONNEMENT</Text>
+                    <Text style={styles.sectionBigTitle}>COMPRÉHENSION DE L'AGRICULTURE BIOLOGIQUE ET LA GESTION DE L'ENVIRONNEMENT</Text>
                 </View>
                 <View style={styles.togglesCard}>
                     {renderToggle('Participation aux formations', participationFormations, setParticipationFormations)}
-                    {renderToggle('Production parallÃ¨le', productionParallele, setProductionParallele)}
-                    {renderToggle('DiversitÃ© Biologique encouragÃ©e', diversiteBiologique, setDiversiteBiologique)}
-                    {renderToggle('Gestion de dÃ©chets', gestionDechets, setGestionDechets)}
-                    {renderToggle("PrÃ©sence d'emballage de produits non conformes", emballageNonConforme, setEmballageNonConforme)}
+                    {renderToggle('Production parallèle', productionParallele, setProductionParallele)}
+                    {renderToggle('Diversité Biologique encouragée', diversiteBiologique, setDiversiteBiologique)}
+                    {renderToggle('Gestion de déchets', gestionDechets, setGestionDechets)}
+                    {renderToggle("Présence d'emballage de produits non conformes", emballageNonConforme, setEmballageNonConforme)}
                     {renderToggle('Rotation de cultures', rotationCultures, setRotationCultures)}
                     {renderToggle('Isolement des parcelles', isolementParcelles, setIsolementParcelles)}
-                    {renderToggle('PrÃ©paration du sol', preparationSol, setPreparationSol)}
+                    {renderToggle('Préparation du sol', preparationSol, setPreparationSol)}
                     {renderToggle('Fertilisation', fertilisation, setFertilisation)}
                     {renderToggle('Semences', semences, setSemences)}
                     {renderToggle('Gestion des adventices', gestionAdventices, setGestionAdventices)}
                     {renderToggle('Gestion des ravageurs et phytomaladie', gestionRavageurs, setGestionRavageurs)}
-                    {renderToggle('RÃ©colte', recolte, setRecolte)}
+                    {renderToggle('Récolte', recolte, setRecolte)}
                     {renderToggle('Stockage', stockage, setStockage)}
                 </View>
 
-                {/* â”€â”€ Commentaire â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Commentaire ─────────────────────────── */}
                 <View style={styles.commentCard}>
                     <TextInput
                         style={styles.commentInput}
@@ -755,12 +730,12 @@ export default function IdentificationsScreen({ navigation }) {
                     />
                 </View>
 
-                {/* â”€â”€ Calendrier Cultural â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Calendrier Cultural ─────────────────── */}
                 <View style={styles.sectionBlock}>
-                    <Text style={styles.sectionBigTitle}>CALENDRIER DES OPÃ‰RATIONS CULTURALES, CULTURES Ã€ CERTIFIER</Text>
+                    <Text style={styles.sectionBigTitle}>CALENDRIER DES OPÉRATIONS CULTURALES, CULTURES À CERTIFIER</Text>
                 </View>
                 <View style={styles.calendarCard}>
-                    <DateInput label="PrÃ©paration du sol/labour" value={datePrepSol} onPress={() => openPicker('datePrepSol')} />
+                    <DateInput label="Préparation du sol/labour" value={datePrepSol} onPress={() => openPicker('datePrepSol')} />
                     <DateInput label="Semis" value={dateSemis} onPress={() => openPicker('dateSemis')} />
                     <DateInput label="1er Sarclage" value={dateSarclage1} onPress={() => openPicker('dateSarclage1')} />
                     <DateInput label="2eme Sarclage" value={dateSarclage2} onPress={() => openPicker('dateSarclage2')} />
@@ -772,15 +747,15 @@ export default function IdentificationsScreen({ navigation }) {
                             style={styles.textInput}
                             value={produitTif}
                             onChangeText={setProduitTif}
-                            placeholder="Produit utilisÃ© (TIF)"
+                            placeholder="Produit utilisé (TIF)"
                             placeholderTextColor={COLORS.textDisabled}
                         />
                     </View>
 
-                    <DateInput label="RÃ©colte" value={dateRecolte} onPress={() => openPicker('dateRecolte')} />
+                    <DateInput label="Récolte" value={dateRecolte} onPress={() => openPicker('dateRecolte')} />
                 </View>
 
-                {/* â”€â”€ Arbres â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Arbres ──────────────────────────────── */}
                 <View style={styles.sectionBlock}>
                     <View style={styles.sectionRow}>
                         <Text style={styles.sectionBigTitle}>Arbres</Text>
@@ -789,7 +764,7 @@ export default function IdentificationsScreen({ navigation }) {
                         </TouchableOpacity>
                     </View>
                     {arbres.length === 0
-                        ? <Text style={styles.emptyText}>Aucun arbre ajoutÃ©</Text>
+                        ? <Text style={styles.emptyText}>Aucun arbre ajouté</Text>
                         : arbres.map((a, i) => (
                             <View key={i} style={styles.arbreRow}>
                                 <Text style={styles.arbreText}>{a.nom}</Text>
@@ -798,12 +773,12 @@ export default function IdentificationsScreen({ navigation }) {
                         ))}
                 </View>
 
-                {/* â”€â”€ Isolement Parcelle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Isolement Parcelle ──────────────────── */}
                 <View style={styles.card}>
                     {renderPicker('Niveau de pente', niveauPente, setNiveauPente, [
                         { label: 'Sans pente', value: 'WITHOUT' },
                         { label: 'Faible', value: 'LOW' },
-                        { label: 'ModÃ©rÃ©e', value: 'MODERATE' },
+                        { label: 'Modérée', value: 'MODERATE' },
                         { label: 'Forte', value: 'HIGH' },
                     ], 'label', 'value')}
                     {renderPicker('Type de culture', typeCulture, setTypeCulture, [
@@ -813,13 +788,13 @@ export default function IdentificationsScreen({ navigation }) {
                     ], 'label', 'value')}
                     <View style={styles.inlineToggle}>
                         <Switch trackColor={{ false: COLORS.border, true: COLORS.identification }} thumbColor="#fff" onValueChange={setCoursEau} value={coursEau} />
-                        <Text style={styles.inlineToggleLabel}>A des cours d'eau Ã  proximitÃ© ?</Text>
+                        <Text style={styles.inlineToggleLabel}>A des cours d'eau à proximité ?</Text>
                     </View>
                     <View style={styles.inlineToggle}>
                         <Switch trackColor={{ false: COLORS.border, true: COLORS.identification }} thumbColor="#fff" onValueChange={setMaisons} value={maisons} />
                         <Text style={styles.inlineToggleLabel}>Ya-t'il des maisons environnantes ?</Text>
                     </View>
-                    {renderPicker('Cultures Ã  proximitÃ©', culturesProximite, setCulturesProximite, cultures, 'nom', 'id')}
+                    {renderPicker('Cultures à proximité', culturesProximite, setCulturesProximite, cultures, 'nom', 'id')}
                     {renderPicker('Rencontre avec', rencontreAvec, setRencontreAvec, [
                         { label: 'Producteur', value: 'Producteur' },
                         { label: 'Femme du producteur', value: 'Femme du producteur' },
@@ -828,14 +803,14 @@ export default function IdentificationsScreen({ navigation }) {
                     ], 'label', 'value')}
                 </View>
 
-                {/* â”€â”€ Photo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Photo ───────────────────────────────── */}
                 <TouchableOpacity style={styles.photoBox} onPress={takePhoto}>
                     {photoURI
                         ? <Image source={{ uri: photoURI }} style={styles.fullImage} />
                         : <MaterialCommunityIcons name="image-outline" size={48} color={COLORS.textDisabled} />}
                 </TouchableOpacity>
 
-                {/* â”€â”€ Signature â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Signature ───────────────────────────── */}
                 <View style={styles.signatureSection}>
                     <View style={styles.signatureHeader}>
                         <Text style={styles.signatureLabel}>Signature du producteur</Text>
@@ -856,7 +831,7 @@ export default function IdentificationsScreen({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
-                {/* â”€â”€ Bouton Sauvegarder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                {/* ── Bouton Sauvegarder ──────────────────── */}
                 <TouchableOpacity
                     style={[styles.submitBtn, submitting && styles.btnDisabled]}
                     onPress={handleSubmit}
@@ -875,9 +850,9 @@ export default function IdentificationsScreen({ navigation }) {
                 <MaterialCommunityIcons name={offlineReady ? 'wifi-off' : 'wifi'} size={14} color="#fff" />
             </View>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            {/* ══════════════════════════════════════════════
                 Modal CARTE
-            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            ══════════════════════════════════════════════ */}
             <Modal visible={mapVisible} animationType="fade" statusBarTranslucent>
                 <View style={styles.modalFull}>
 
@@ -889,7 +864,7 @@ export default function IdentificationsScreen({ navigation }) {
                             <MaterialCommunityIcons name="arrow-left" size={24} color="#111" />
                         </TouchableOpacity>
                         <Text style={styles.mapHeaderTitle}>
-                            {reviewMode ? 'ðŸ” VÃ©rification du tracÃ©' : 'ðŸ“ Tracer la parcelle'}
+                            {reviewMode ? '🔍 Vérification du tracé' : '📍 Tracer la parcelle'}
                         </Text>
                         {reviewMode && (
                             <View style={styles.mapHeaderBadge}>
@@ -908,10 +883,7 @@ export default function IdentificationsScreen({ navigation }) {
                                 if (data.type === 'tap') addPointToPolygon({ latitude: data.lat, longitude: data.lng });
                                 if (data.type === 'deletePoint') handleDeletePoint(data.index);
                                 if (data.type === 'pointMoved') handlePointMoved(data.index, data.lat, data.lng);
-                                if (data.type === 'linked') {
-                                    setPolygonLinked(true);
-                                    setSuperficie(calculateAreaInHectares(polygonCoords));
-                                }
+                                if (data.type === 'linked') { setPolygonLinked(true); }
                             } catch (e) { }
                         }}
                         javaScriptEnabled domStorageEnabled originWhitelist={['*']} scrollEnabled={false}
@@ -934,13 +906,12 @@ export default function IdentificationsScreen({ navigation }) {
                                     <MaterialCommunityIcons name="plus-circle" size={32} color="#fff" />
                                     <Text style={styles.mapActionText}>Point GPS</Text>
                                 </TouchableOpacity>
-                                {/* âš¡ Bouton Relier â€” visible dÃ¨s 3 points, et masquÃ© si dÃ©jÃ  reliÃ© */}
                                 {polygonCoords.length >= 3 && !polygonLinked && (
                                     <TouchableOpacity
                                         style={[styles.mapActionBtn, { backgroundColor: '#27AE60' }]}
                                         onPress={linkPolygon}
                                     >
-                                        <Text style={{ fontSize: 28, lineHeight: 36 }}>âš¡</Text>
+                                        <MaterialCommunityIcons name="vector-polygon" size={32} color="#fff" />
                                         <Text style={styles.mapActionText}>Relier</Text>
                                     </TouchableOpacity>
                                 )}
@@ -950,7 +921,7 @@ export default function IdentificationsScreen({ navigation }) {
                                         onPress={goToReviewMode}
                                     >
                                         <MaterialCommunityIcons name="eye-outline" size={32} color="#fff" />
-                                        <Text style={styles.mapActionText}>RÃ©viser</Text>
+                                        <Text style={styles.mapActionText}>Reviser</Text>
                                     </TouchableOpacity>
                                 )}
                                 <TouchableOpacity
@@ -967,7 +938,7 @@ export default function IdentificationsScreen({ navigation }) {
                         <View style={styles.reviewPanel}>
                             <View style={styles.reviewInfo}>
                                 <MaterialCommunityIcons name="information-outline" size={16} color="#666" />
-                                <Text style={styles.reviewInfoText}>Appuyez sur un point pour le supprimer ou le dÃ©placer</Text>
+                                <Text style={styles.reviewInfoText}>Appuyez sur un point pour le supprimer ou le déplacer</Text>
                             </View>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pointsList}>
                                 {polygonCoords.map((pt, i) => (
@@ -980,7 +951,7 @@ export default function IdentificationsScreen({ navigation }) {
                                             [
                                                 { text: 'Fermer' },
                                                 {
-                                                    text: 'ðŸ—‘ Supprimer', style: 'destructive',
+                                                    text: '🗑 Supprimer', style: 'destructive',
                                                     onPress: () => {
                                                         handleDeletePoint(i);
                                                         webViewRef.current?.injectJavaScript(`pts.splice(${i},1);redraw(pts);true;`);
@@ -1000,7 +971,7 @@ export default function IdentificationsScreen({ navigation }) {
                                 </TouchableOpacity>
                                 <TouchableOpacity style={styles.reviewBtnValider} onPress={validateFromReview}>
                                     <MaterialCommunityIcons name="check-circle" size={20} color="#fff" />
-                                    <Text style={styles.reviewBtnValiderText}>Valider ce tracÃ©</Text>
+                                    <Text style={styles.reviewBtnValiderText}>Valider ce tracé</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -1008,9 +979,9 @@ export default function IdentificationsScreen({ navigation }) {
                 </View>
             </Modal>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            {/* ══════════════════════════════════════════════
                 Modal HISTORIQUE
-            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            ══════════════════════════════════════════════ */}
             <Modal visible={showHistModal} animationType="slide" transparent>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
@@ -1026,7 +997,7 @@ export default function IdentificationsScreen({ navigation }) {
                                 style={styles.textInput}
                                 value={histAnnee}
                                 onChangeText={setHistAnnee}
-                                placeholder="AnnÃ©e"
+                                placeholder="Année"
                                 placeholderTextColor={COLORS.textDisabled}
                                 keyboardType="numeric"
                             />
@@ -1071,7 +1042,7 @@ export default function IdentificationsScreen({ navigation }) {
             <Modal visible={showChemModal} animationType="fade" transparent>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalSmallContent}>
-                        <Text style={styles.modalSubTitle}>SÃ©lectionnner Chemicals</Text>
+                        <Text style={styles.modalSubTitle}>Sélectionnner Chemicals</Text>
 
                         <TouchableOpacity
                             style={styles.checkRow}
@@ -1104,9 +1075,9 @@ export default function IdentificationsScreen({ navigation }) {
                 </View>
             </Modal>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            {/* ══════════════════════════════════════════════
                 Modal SIGNATURE
-            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            ══════════════════════════════════════════════ */}
             <Modal visible={signatureVisible} animationType="slide">
                 <View style={styles.sigContainer}>
                     <View style={styles.sigHeader}>
@@ -1142,9 +1113,9 @@ export default function IdentificationsScreen({ navigation }) {
                 </View>
             </Modal>
 
-            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            {/* ══════════════════════════════════════════════
                 Modal ARBRE
-            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            ══════════════════════════════════════════════ */}
             <Modal visible={showArbreModal} transparent animationType="slide">
                 <View style={styles.arbreModalOverlay}>
                     <View style={styles.arbreModalBox}>
@@ -1165,11 +1136,11 @@ export default function IdentificationsScreen({ navigation }) {
                 </View>
             </Modal>
 
-            {/* Overlay tÃ©lÃ©chargement */}
+            {/* Overlay téléchargement */}
             {downloadingTiles && (
                 <View style={styles.downloadOverlay}>
                     <ActivityIndicator size="large" color="#fff" />
-                    <Text style={styles.downloadText}>TÃ©lÃ©chargement cartes offline...</Text>
+                    <Text style={styles.downloadText}>Téléchargement cartes offline...</Text>
                     <View style={styles.progressBar}>
                         <View style={[styles.progressFill, { width: `${downloadProgress}%` }]} />
                     </View>
@@ -1188,9 +1159,9 @@ export default function IdentificationsScreen({ navigation }) {
     );
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 // STYLES
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F5F5F5' },
     scrollArea: { flex: 1 },

@@ -248,6 +248,7 @@ export default function IdentificationsScreen({ navigation }) {
     const [coordonnees, setCoordonnees] = useState(null);
     const [reviewMode, setReviewMode] = useState(false);
     const webViewRef = useRef(null);
+    const [mapHTML, setMapHTML] = useState('');
 
     const [offlineReady, setOfflineReady] = useState(false);
     const [downloadingTiles, setDownloadingTiles] = useState(false);
@@ -326,11 +327,26 @@ export default function IdentificationsScreen({ navigation }) {
     const openMap = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') { Alert.alert('Permission', 'Localisation requise.'); return; }
+        
+        let center = { latitude: 6.1807829, longitude: 1.2399676 };
         try {
             const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-            setMapCenter({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+            center = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
+            setMapCenter(center);
         } catch (e) { }
-        setPolygonCoords([]);
+
+        // S'il y a déjà des coordonnées enregistrées, on les charge pour pouvoir les modifier, sinon on démarre à vide
+        const activeCoords = coordonnees && coordonnees.length > 0 ? coordonnees : [];
+        if (activeCoords.length > 0) {
+            center = { latitude: activeCoords[0].latitude, longitude: activeCoords[0].longitude };
+            setMapCenter(center);
+        }
+        setPolygonCoords(activeCoords);
+
+        // On génère le HTML statique une seule fois à l'ouverture pour éviter les rechargements intempestifs du WebView
+        const html = buildLeafletHTML(center, activeCoords, false);
+        setMapHTML(html);
+
         setReviewMode(false);
         setMapVisible(true);
     };
@@ -339,10 +355,9 @@ export default function IdentificationsScreen({ navigation }) {
         setPolygonCoords(prev => {
             const newCoords = [...prev, coord];
             if (newCoords.length >= 3) setSuperficie(calculateAreaInHectares(newCoords));
+            // Appel direct à redraw() sans passer par window.dispatchEvent qui pose problème sous Android
             webViewRef.current?.injectJavaScript(`
-                window.dispatchEvent(new MessageEvent('message',{
-                    data: JSON.stringify({type:'update',points:${JSON.stringify(newCoords)}})
-                })); true;
+                redraw(${JSON.stringify(newCoords)}); true;
             `);
             return newCoords;
         });
@@ -354,9 +369,7 @@ export default function IdentificationsScreen({ navigation }) {
             const coord = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
             addPointToPolygon(coord);
             webViewRef.current?.injectJavaScript(`
-                window.dispatchEvent(new MessageEvent('message',{
-                    data:'{"type":"center","lat":'+${loc.coords.latitude}+',"lng":'+${loc.coords.longitude}+'}'
-                })); true;
+                map.setView([${loc.coords.latitude}, ${loc.coords.longitude}], 17); true;
             `);
         } catch { Alert.alert('Erreur GPS', 'Signal trop faible.'); }
     };
@@ -366,7 +379,10 @@ export default function IdentificationsScreen({ navigation }) {
         setReviewMode(true);
         webViewRef.current?.injectJavaScript(`
             reviewMode=true; redraw(pts);
-            window.dispatchEvent(new MessageEvent('message',{data:'{"type":"fitBounds"}'}));
+            if (pts.length >= 2) {
+                var bounds = L.latLngBounds(pts.map(function(p){return [p.latitude, p.longitude];}));
+                map.fitBounds(bounds, {padding: [40, 40]});
+            }
             true;
         `);
     };
@@ -854,7 +870,7 @@ export default function IdentificationsScreen({ navigation }) {
 
                     <WebView
                         ref={webViewRef}
-                        source={{ html: buildLeafletHTML(mapCenter, polygonCoords, reviewMode) }}
+                        source={{ html: mapHTML }}
                         style={styles.map}
                         onMessage={(event) => {
                             try {

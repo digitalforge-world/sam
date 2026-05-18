@@ -34,7 +34,10 @@ class ProducteurApiController extends Controller
             });
         }
 
-        return response()->json($query->paginate(20));
+        if ($request->has('page')) {
+            return response()->json($query->paginate(20));
+        }
+        return response()->json($query->get());
     }
 
     public function store(Request $request)

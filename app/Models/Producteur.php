@@ -44,4 +44,11 @@ class Producteur extends Model
     {
         return $id ? $q->where('zone_id', $id) : $q;
     }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->withoutGlobalScope(\App\Models\Scopes\ZoneScope::class)
+            ->where($field ?? $this->getRouteKeyName(), $value)
+            ->first();
+    }
 }

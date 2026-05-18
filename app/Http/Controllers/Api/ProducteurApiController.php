@@ -11,7 +11,8 @@ class ProducteurApiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Producteur::with(['zone', 'village', 'organisation', 'controleur']);
+        $query = Producteur::withoutGlobalScope(\App\Models\Scopes\ZoneScope::class)
+            ->with(['zone', 'village', 'organisation', 'controleur']);
         
         // ISOLATION : Un contrôleur ne voit que ses propres producteurs (attribués par l'admin)
         if ($user = $request->user()) {

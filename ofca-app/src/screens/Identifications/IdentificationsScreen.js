@@ -181,12 +181,17 @@ const tilesExist = async () => (await FileSystem.getInfoAsync(TILES_DIR)).exists
 // DateInput
 // ─────────────────────────────────────────────────────────────
 const DateInput = ({ label, value, onPress }) => (
-    <TouchableOpacity style={styles.dateRow} onPress={onPress}>
-        <Text style={[styles.dateInput, !value && { color: COLORS.textDisabled }, { textAlignVertical: 'center', paddingTop: 14 }]}>
-            {value || label}
-        </Text>
-        <MaterialCommunityIcons name="calendar-month-outline" size={22} color={COLORS.textDisabled} style={styles.dateIcon} />
-    </TouchableOpacity>
+    <View style={styles.floatingInputContainer}>
+        <View style={styles.floatingLabelContainer}>
+            <Text style={styles.floatingLabel}>{label}</Text>
+        </View>
+        <TouchableOpacity style={styles.floatingInputRow} onPress={onPress}>
+            <Text style={[styles.floatingInputValue, !value && { color: COLORS.textDisabled }]}>
+                {value || 'Sélectionnez une date'}
+            </Text>
+            <MaterialCommunityIcons name="calendar-month-outline" size={22} color={COLORS.textDisabled} />
+        </TouchableOpacity>
+    </View>
 );
 
 // ─────────────────────────────────────────────────────────────
@@ -613,13 +618,18 @@ export default function IdentificationsScreen({ navigation }) {
     );
 
     const renderPicker = (label, value, onChange, items, labelKey = 'label', valueKey = 'value') => (
-        <View style={styles.pickerWrapper}>
-            <Picker selectedValue={value} onValueChange={onChange} style={styles.picker}>
-                <Picker.Item label={label} value="" />
-                {items.map((item, i) => (
-                    <Picker.Item key={i} label={item[labelKey] ?? item} value={(item[valueKey] ?? item).toString()} />
-                ))}
-            </Picker>
+        <View style={styles.floatingInputContainer}>
+            <View style={styles.floatingLabelContainer}>
+                <Text style={styles.floatingLabel}>{label}</Text>
+            </View>
+            <View style={[styles.floatingInputRow, { paddingHorizontal: 0 }]}>
+                <Picker selectedValue={value} onValueChange={onChange} style={styles.picker}>
+                    <Picker.Item label={`-- Sélectionner --`} value="" color={COLORS.textDisabled} />
+                    {items.map((item, i) => (
+                        <Picker.Item key={i} label={item[labelKey] ?? item} value={(item[valueKey] ?? item).toString()} />
+                    ))}
+                </Picker>
+            </View>
         </View>
     );
 
@@ -634,14 +644,19 @@ export default function IdentificationsScreen({ navigation }) {
                     {renderPicker('Producteur *', selectedProducteur, setSelectedProducteur,
                         producteurs.map(p => ({ label: `${p.nom} ${p.prenom}`, value: p.id })), 'label', 'value')}
 
-                    <View style={styles.inputWrapper}>
-                        <TextInput
-                            style={styles.textInput}
-                            value={nomParcelle}
-                            onChangeText={setNomParcelle}
-                            placeholder="Nom de la parcelle (optionnel)"
-                            placeholderTextColor={COLORS.textDisabled}
-                        />
+                    <View style={styles.floatingInputContainer}>
+                        <View style={styles.floatingLabelContainer}>
+                            <Text style={styles.floatingLabel}>Nom de la parcelle (optionnel)</Text>
+                        </View>
+                        <View style={styles.floatingInputRow}>
+                            <TextInput
+                                style={styles.floatingInputValue}
+                                value={nomParcelle}
+                                onChangeText={setNomParcelle}
+                                placeholder=""
+                                placeholderTextColor={COLORS.textDisabled}
+                            />
+                        </View>
                     </View>
 
                     {renderPicker('Culture à certifier', selectedCulture, setSelectedCulture, cultures, 'nom', 'id')}
@@ -719,15 +734,22 @@ export default function IdentificationsScreen({ navigation }) {
 
                 {/* ── Commentaire ─────────────────────────── */}
                 <View style={styles.commentCard}>
-                    <TextInput
-                        style={styles.commentInput}
-                        value={commentaire}
-                        onChangeText={setCommentaire}
-                        placeholder="Commentaire"
-                        placeholderTextColor={COLORS.textDisabled}
-                        multiline
-                        numberOfLines={3}
-                    />
+                    <View style={styles.floatingInputContainer}>
+                        <View style={styles.floatingLabelContainer}>
+                            <Text style={styles.floatingLabel}>Commentaire</Text>
+                        </View>
+                        <View style={[styles.floatingInputRow, { height: 'auto', minHeight: 80, alignItems: 'flex-start', paddingVertical: 10 }]}>
+                            <TextInput
+                                style={[styles.floatingInputValue, { textAlignVertical: 'top' }]}
+                                value={commentaire}
+                                onChangeText={setCommentaire}
+                                placeholder=""
+                                placeholderTextColor={COLORS.textDisabled}
+                                multiline
+                                numberOfLines={3}
+                            />
+                        </View>
+                    </View>
                 </View>
 
                 {/* ── Calendrier Cultural ─────────────────── */}
@@ -742,14 +764,19 @@ export default function IdentificationsScreen({ navigation }) {
                     <DateInput label="Apport fumier/Engrais organique" value={dateFertilisation} onPress={() => openPicker('dateFertilisation')} />
 
                     <DateInput label="Traitement d'induction florale (TIF)" value={dateTif} onPress={() => openPicker('dateTif')} />
-                    <View style={styles.inputWrapper}>
-                        <TextInput
-                            style={styles.textInput}
-                            value={produitTif}
-                            onChangeText={setProduitTif}
-                            placeholder="Produit utilisé (TIF)"
-                            placeholderTextColor={COLORS.textDisabled}
-                        />
+                    <View style={styles.floatingInputContainer}>
+                        <View style={styles.floatingLabelContainer}>
+                            <Text style={styles.floatingLabel}>Produit utilisé (TIF)</Text>
+                        </View>
+                        <View style={styles.floatingInputRow}>
+                            <TextInput
+                                style={styles.floatingInputValue}
+                                value={produitTif}
+                                onChangeText={setProduitTif}
+                                placeholder=""
+                                placeholderTextColor={COLORS.textDisabled}
+                            />
+                        </View>
                     </View>
 
                     <DateInput label="Récolte" value={dateRecolte} onPress={() => openPicker('dateRecolte')} />
@@ -1166,16 +1193,45 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F5F5F5' },
     scrollArea: { flex: 1 },
 
-    card: { backgroundColor: '#fff', marginBottom: 8, paddingVertical: 4 },
+    card: { backgroundColor: '#fff', marginBottom: 8, paddingVertical: 12, paddingHorizontal: 16 },
     togglesCard: { backgroundColor: '#fff', marginBottom: 8 },
-    calendarCard: { backgroundColor: '#fff', marginBottom: 8, paddingHorizontal: 16, paddingVertical: 8 },
+    calendarCard: { backgroundColor: '#fff', marginBottom: 8, paddingHorizontal: 16, paddingVertical: 12 },
     commentCard: { backgroundColor: '#fff', marginBottom: 8, paddingHorizontal: 16, paddingVertical: 8 },
 
-    inputWrapper: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
-    textInput: { height: 44, fontSize: 16, color: '#111' },
+    floatingInputContainer: {
+        position: 'relative',
+        marginBottom: 16,
+        marginTop: 8,
+    },
+    floatingLabelContainer: {
+        position: 'absolute',
+        top: -10,
+        left: 12,
+        backgroundColor: '#fff',
+        paddingHorizontal: 6,
+        zIndex: 1,
+    },
+    floatingLabel: {
+        fontSize: 12,
+        color: '#666',
+    },
+    floatingInputRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#555',
+        borderRadius: 8,
+        paddingHorizontal: 14,
+        minHeight: 52,
+        backgroundColor: '#fff',
+    },
+    floatingInputValue: {
+        flex: 1,
+        fontSize: 16,
+        color: '#111',
+    },
 
-    pickerWrapper: { borderBottomWidth: 1, borderBottomColor: '#E0E0E0', backgroundColor: '#fff', marginBottom: 2 },
-    picker: { height: 56, color: COLORS.textPrimary },
+    picker: { flex: 1, height: 52, color: COLORS.textPrimary, backgroundColor: 'transparent' },
 
     superficieBox: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
     superficieLabel: { fontSize: 12, color: COLORS.textDisabled, marginBottom: 2 },

@@ -269,6 +269,13 @@ export default function ControlesScreen({ navigation }) {
         const newAnswers = [...answersPart1];
         newAnswers[index][field] = value;
         setAnswersPart1(newAnswers);
+
+        // Si on coche conforme = true, on vide automatiquement l'action de la partie 2 correspondante
+        if (field === 'conforme' && value === true) {
+            const newAnswersPart2 = [...answersPart2];
+            newAnswersPart2[index] = { action: '', responsable: '', delai: '0', besoinSuivi: false };
+            setAnswersPart2(newAnswersPart2);
+        }
     };
 
     const handleAnswer2Change = (index, field, value) => {
@@ -500,6 +507,10 @@ export default function ControlesScreen({ navigation }) {
                     <Text style={styles.resumeTitle2}>CONTROLS</Text>
                 </View>
                 {QUESTIONS_PART_2.map((q, index) => {
+                    // Si le point est conforme dans la partie 1, il disparait du résumé des contrôles (partie 2)
+                    if (answersPart1[index]?.conforme) {
+                        return null;
+                    }
                     const globalIndex = index + QUESTIONS_PART_1.length + 1;
                     return (
                         <View key={index} style={styles.questionContainer}>
